@@ -15,4 +15,5 @@ app.use('/posts', postRouter)
 app.delete('/testing/all-data', (req:Request, res:Response) =>{
     blogsDB.splice(0, blogsDB.length)
     postsDB.splice(0, postsDB.length)
+    res.sendStatus(204)
 })

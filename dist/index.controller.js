@@ -16,4 +16,5 @@ exports.app.use('/posts', posts_router_1.postRouter);
 exports.app.delete('/testing/all-data', (req, res) => {
     blogs_db_1.blogsDB.splice(0, blogs_db_1.blogsDB.length);
     posts_db_1.postsDB.splice(0, posts_db_1.postsDB.length);
+    res.sendStatus(204);
 });
