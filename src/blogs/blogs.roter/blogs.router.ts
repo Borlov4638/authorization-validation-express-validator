@@ -3,7 +3,7 @@ import { blogsDB } from "../db/blogs.db";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
 import { validationResult } from "express-validator";
 import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation } from "../validation/blog.validatiom";
-import { authLoginValidationMiddleware, authPasswordValidationMiddleware } from "../../auth/auth.middleware";
+import { authValidationMiddleware } from "../../auth/auth.middleware";
 
 
 
@@ -27,8 +27,7 @@ blogsRouter.get('/:id', (req:RequestWithParam<{id:string}>, res:Response) => {
 })
 
 blogsRouter.post('/',
-    authLoginValidationMiddleware(),
-    authPasswordValidationMiddleware(),
+    authValidationMiddleware(),
     blogNameValidation(),
     blogDescriptionValidation(),
     blogUrlValidation(),
@@ -63,8 +62,7 @@ blogsRouter.post('/',
 })
 
 blogsRouter.put('/:id',
-    authLoginValidationMiddleware(),
-    authPasswordValidationMiddleware(),
+    authValidationMiddleware(),
     blogNameValidation(),
     blogDescriptionValidation(),
     blogUrlValidation(),
@@ -100,8 +98,7 @@ blogsRouter.put('/:id',
 })
 
 blogsRouter.delete('/:id',
-    authLoginValidationMiddleware(),
-    authPasswordValidationMiddleware(),
+    authValidationMiddleware(),
     (req:Request, res:Response) =>{
 
     const result = validationResult(req)

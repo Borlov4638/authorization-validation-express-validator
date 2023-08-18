@@ -18,7 +18,7 @@ exports.postRouter.get('/:id', (req, res) => {
     }
     return res.status(200).send(foundedPost);
 });
-exports.postRouter.post('/', (0, auth_middleware_1.authPasswordValidationMiddleware)(), (0, auth_middleware_1.authLoginValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => {
+exports.postRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => {
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
@@ -42,9 +42,10 @@ exports.postRouter.post('/', (0, auth_middleware_1.authPasswordValidationMiddlew
     posts_db_1.postsDB.push(newPost);
     return res.status(201).send(newPost);
 });
-exports.postRouter.put('/:id', (0, auth_middleware_1.authPasswordValidationMiddleware)(), (0, auth_middleware_1.authLoginValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => {
+exports.postRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => {
     const postToUpdate = posts_db_1.postsDB.find(post => post.id === req.params.id);
     const result = (0, express_validator_1.validationResult)(req);
+    console.log(req.headers.authorization);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
         return res.sendStatus(401);
@@ -66,7 +67,7 @@ exports.postRouter.put('/:id', (0, auth_middleware_1.authPasswordValidationMiddl
     postToUpdate.blogName = blogToFetch.name;
     return res.sendStatus(204);
 });
-exports.postRouter.delete('/:id', (0, auth_middleware_1.authPasswordValidationMiddleware)(), (0, auth_middleware_1.authLoginValidationMiddleware)(), (req, res) => {
+exports.postRouter.delete('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (req, res) => {
     const postToDelete = posts_db_1.postsDB.find(post => post.id === req.params.id);
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');

@@ -4,7 +4,7 @@ import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../.
 import { validationResult } from "express-validator";
 import { blogsDB } from "../../blogs/db/blogs.db";
 import { authBlogIsExistsValidationMiddleware, postBlogIdValidation, postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
-import { authLoginValidationMiddleware, authPasswordValidationMiddleware } from "../../auth/auth.middleware";
+import { authValidationMiddleware } from "../../auth/auth.middleware";
 
 export const postRouter = Router({})
 
@@ -23,8 +23,7 @@ postRouter.get('/:id', (req : RequestWithParam<{id:string}>, res: Response) =>{
 })
 
 postRouter.post('/',
-    authPasswordValidationMiddleware(),
-    authLoginValidationMiddleware(),
+    authValidationMiddleware(),
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -59,14 +58,13 @@ postRouter.post('/',
         blogId: blogToFetch.id,
         blogName: blogToFetch.name
     }
-
+    
     postsDB.push(newPost)
     return res.status(201).send(newPost)
 })
 
 postRouter.put('/:id',
-    authPasswordValidationMiddleware(),
-    authLoginValidationMiddleware(),
+    authValidationMiddleware(),
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -76,7 +74,7 @@ postRouter.put('/:id',
     const postToUpdate = postsDB.find(post => post.id === req.params.id)
     
     const result = validationResult(req)
-
+    console.log(req.headers.authorization)
 
     const unathorised = result.array().find(error => error.msg === '401')
 
@@ -112,8 +110,7 @@ postRouter.put('/:id',
 })
 
 postRouter.delete('/:id',
-    authPasswordValidationMiddleware(),
-    authLoginValidationMiddleware(),
+    authValidationMiddleware(),
     (req:Request, res:Response) =>{
     const postToDelete = postsDB.find(post => post.id === req.params.id)
 

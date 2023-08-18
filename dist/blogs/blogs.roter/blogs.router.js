@@ -28,7 +28,7 @@ exports.blogsRouter.get('/:id', (req, res) => {
         res.sendStatus(404);
     }
 });
-exports.blogsRouter.post('/', (0, auth_middleware_1.authLoginValidationMiddleware)(), (0, auth_middleware_1.authPasswordValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.blogsRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
@@ -46,7 +46,7 @@ exports.blogsRouter.post('/', (0, auth_middleware_1.authLoginValidationMiddlewar
     blogs_db_1.blogsDB.push(newBlog);
     return res.status(201).send(newBlog);
 }));
-exports.blogsRouter.put('/:id', (0, auth_middleware_1.authLoginValidationMiddleware)(), (0, auth_middleware_1.authPasswordValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.blogsRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
@@ -64,7 +64,7 @@ exports.blogsRouter.put('/:id', (0, auth_middleware_1.authLoginValidationMiddlew
     findBlogToUpdate.websiteUrl = req.body.websiteUrl;
     return res.sendStatus(204);
 }));
-exports.blogsRouter.delete('/:id', (0, auth_middleware_1.authLoginValidationMiddleware)(), (0, auth_middleware_1.authPasswordValidationMiddleware)(), (req, res) => {
+exports.blogsRouter.delete('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (req, res) => {
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
