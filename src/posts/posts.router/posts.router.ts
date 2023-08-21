@@ -56,7 +56,8 @@ postRouter.post('/',
         shortDescription: req.body.shortDescription,
         content: req.body.content,
         blogId: blogToFetch.id,
-        blogName: blogToFetch.name
+        blogName: blogToFetch.name,
+        createdAt: (new Date()).toISOString()
     }
     
     postsDB.push(newPost)

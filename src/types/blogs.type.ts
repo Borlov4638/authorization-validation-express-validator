@@ -5,5 +5,9 @@ export type BlogType = {
 
     description:string,
 
-    websiteUrl:string
+    websiteUrl:string,
+
+    createdAt: string,
+
+    isMembership: boolean
 }

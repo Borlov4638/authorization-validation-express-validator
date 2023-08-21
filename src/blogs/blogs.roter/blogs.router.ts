@@ -4,6 +4,7 @@ import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../.
 import { validationResult } from "express-validator";
 import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation } from "../validation/blog.validatiom";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
+import { BlogType } from "../../types/blogs.type";
 
 
 
@@ -53,7 +54,9 @@ blogsRouter.post('/',
             id: (+new Date()).toString(),
             name: req.body.name,
             description: req.body.description,
-            websiteUrl: req.body.websiteUrl
+            websiteUrl: req.body.websiteUrl,
+            createdAt: (new Date()).toISOString(),
+            isMembership: true
         }
 
         blogsDB.push(newBlog)

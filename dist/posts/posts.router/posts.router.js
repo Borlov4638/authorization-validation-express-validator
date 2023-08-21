@@ -37,7 +37,8 @@ exports.postRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), 
         shortDescription: req.body.shortDescription,
         content: req.body.content,
         blogId: blogToFetch.id,
-        blogName: blogToFetch.name
+        blogName: blogToFetch.name,
+        createdAt: (new Date()).toISOString()
     };
     posts_db_1.postsDB.push(newPost);
     return res.status(201).send(newPost);

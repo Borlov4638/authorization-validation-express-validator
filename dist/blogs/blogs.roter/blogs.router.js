@@ -41,7 +41,9 @@ exports.blogsRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(),
         id: (+new Date()).toString(),
         name: req.body.name,
         description: req.body.description,
-        websiteUrl: req.body.websiteUrl
+        websiteUrl: req.body.websiteUrl,
+        createdAt: (new Date()).toISOString(),
+        isMembership: true
     };
     blogs_db_1.blogsDB.push(newBlog);
     return res.status(201).send(newBlog);

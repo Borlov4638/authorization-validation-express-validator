@@ -8,6 +8,7 @@ export const postsDB : PostType[] =
       shortDescription: "string",
       content: "string",
       blogId: "string",
-      blogName: "string"
+      blogName: "string",
+      createdAt: "2023-08-21T03:25:21.379Z"
     }
 ]  
