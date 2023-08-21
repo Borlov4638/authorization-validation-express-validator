@@ -121,7 +121,7 @@ postRouter.put('/:id',
 
 postRouter.delete('/:id',
     authValidationMiddleware(),
-    (req:Request, res:Response) =>{
+    async (req:Request, res:Response) =>{
 
     const result = validationResult(req)
 
@@ -131,7 +131,7 @@ postRouter.delete('/:id',
         return res.sendStatus(401)
     }
 
-    const postToDelete = client.db("incubator").collection("posts").findOne({id:req.params.id})
+    const postToDelete = await client.db("incubator").collection("posts").findOne({id:req.params.id})
 
     if(!postToDelete){
         return res.sendStatus(404)

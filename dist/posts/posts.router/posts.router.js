@@ -83,16 +83,16 @@ exports.postRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)()
             blogName: blogToFetch.name } });
     return res.sendStatus(204);
 }));
-exports.postRouter.delete('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (req, res) => {
+exports.postRouter.delete('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
         return res.sendStatus(401);
     }
-    const postToDelete = db_init_1.client.db("incubator").collection("posts").findOne({ id: req.params.id });
+    const postToDelete = yield db_init_1.client.db("incubator").collection("posts").findOne({ id: req.params.id });
     if (!postToDelete) {
         return res.sendStatus(404);
     }
     db_init_1.client.db("incubator").collection("posts").findOneAndDelete({ id: req.params.id });
     return res.sendStatus(204);
-});
+}));
