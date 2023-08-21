@@ -57,10 +57,12 @@ blogsRouter.post('/',
             createdAt: (new Date()).toISOString(),
             isMembership: true
         }
-        await client.db("incubator").collection("blogs").insertOne(newBlog)
+
+        res.status(201).send(newBlog)
+
+         return await client.db("incubator").collection("blogs").insertOne(newBlog)
 
         // blogsDB.push(newBlog)
-        return res.status(201).send(newBlog)
 
 })
 

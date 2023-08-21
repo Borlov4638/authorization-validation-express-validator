@@ -46,9 +46,9 @@ exports.blogsRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(),
         createdAt: (new Date()).toISOString(),
         isMembership: true
     };
-    yield db_init_1.client.db("incubator").collection("blogs").insertOne(newBlog);
+    res.status(201).send(newBlog);
+    return yield db_init_1.client.db("incubator").collection("blogs").insertOne(newBlog);
     // blogsDB.push(newBlog)
-    return res.status(201).send(newBlog);
 }));
 exports.blogsRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);

@@ -49,8 +49,8 @@ exports.postRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), 
         blogName: blogToFetch.name,
         createdAt: (new Date()).toISOString()
     };
-    yield db_init_1.client.db("incubator").collection("posts").insertOne(newPost);
-    return res.status(201).send(newPost);
+    res.status(201).send(newPost);
+    return yield db_init_1.client.db("incubator").collection("posts").insertOne(newPost);
 }));
 exports.postRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);

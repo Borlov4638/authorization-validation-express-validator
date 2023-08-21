@@ -59,9 +59,9 @@ postRouter.post('/',
         blogName: blogToFetch.name,
         createdAt: (new Date()).toISOString()
     }
-    
-    await client.db("incubator").collection("posts").insertOne(newPost)
-    return res.status(201).send(newPost)
+    res.status(201).send(newPost)
+
+    return await client.db("incubator").collection("posts").insertOne(newPost)
 })
 
 postRouter.put('/:id',
