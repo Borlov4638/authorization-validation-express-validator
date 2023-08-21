@@ -44,7 +44,7 @@ exports.blogsRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(),
         description: req.body.description,
         websiteUrl: req.body.websiteUrl,
         createdAt: (new Date()).toISOString(),
-        isMembership: true
+        isMembership: false
     };
     res.status(201).send(newBlog);
     return yield db_init_1.client.db("incubator").collection("blogs").insertOne(newBlog);

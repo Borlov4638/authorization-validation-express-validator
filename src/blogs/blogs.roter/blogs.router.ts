@@ -55,7 +55,7 @@ blogsRouter.post('/',
             description: req.body.description,
             websiteUrl: req.body.websiteUrl,
             createdAt: (new Date()).toISOString(),
-            isMembership: true
+            isMembership: false
         }
 
         res.status(201).send(newBlog)
