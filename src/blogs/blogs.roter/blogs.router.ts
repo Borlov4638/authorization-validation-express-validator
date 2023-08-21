@@ -60,7 +60,7 @@ blogsRouter.post('/',
 
         res.status(201).send(newBlog)
 
-         return await client.db("incubator").collection("blogs").insertOne(newBlog)
+        return await client.db("incubator").collection("blogs").insertOne(newBlog)
 
         // blogsDB.push(newBlog)
 
