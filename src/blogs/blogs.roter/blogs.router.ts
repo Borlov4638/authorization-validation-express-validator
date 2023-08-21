@@ -93,9 +93,9 @@ blogsRouter.put('/:id',
             return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
         }
 
-        findBlogToUpdate.description = req.body.description
-        findBlogToUpdate.name = req.body.name
-        findBlogToUpdate.websiteUrl = req.body.websiteUrl
+        // findBlogToUpdate.description = req.body.description
+        // findBlogToUpdate.name = req.body.name
+        // findBlogToUpdate.websiteUrl = req.body.websiteUrl
 
         await client.db("incubator").collection("blogs").updateOne({id: req.params.id}, {$set:{websiteUrl:req.body.websiteUrl ,name:req.body.name, description: req.body.description}})
         

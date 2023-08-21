@@ -64,9 +64,9 @@ exports.blogsRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(
     if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }).map(error => error.msg) });
     }
-    findBlogToUpdate.description = req.body.description;
-    findBlogToUpdate.name = req.body.name;
-    findBlogToUpdate.websiteUrl = req.body.websiteUrl;
+    // findBlogToUpdate.description = req.body.description
+    // findBlogToUpdate.name = req.body.name
+    // findBlogToUpdate.websiteUrl = req.body.websiteUrl
     yield db_init_1.client.db("incubator").collection("blogs").updateOne({ id: req.params.id }, { $set: { websiteUrl: req.body.websiteUrl, name: req.body.name, description: req.body.description } });
     return res.sendStatus(204);
 }));
