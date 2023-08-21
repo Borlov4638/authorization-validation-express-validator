@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authBlogIsExistsValidationMiddleware = exports.postBlogIdValidation = exports.postContenteValidation = exports.postShortDescriptionValidation = exports.postTitleValidation = void 0;
+exports.postBlogIdValidation = exports.postContenteValidation = exports.postShortDescriptionValidation = exports.postTitleValidation = void 0;
 const express_validator_1 = require("express-validator");
 const db_init_1 = require("../../blogs/db/db.init");
 const postTitleValidation = () => (0, express_validator_1.body)('title').exists({ values: "falsy" }).withMessage({ message: 'title not passed', field: "title" }).isString().trim().isLength({ min: 1, max: 30 }).withMessage({ message: 'Invalid title', field: "title" });
@@ -18,13 +18,12 @@ const postShortDescriptionValidation = () => (0, express_validator_1.body)('shor
 exports.postShortDescriptionValidation = postShortDescriptionValidation;
 const postContenteValidation = () => (0, express_validator_1.body)('content').exists({ values: "falsy" }).withMessage({ message: 'Content not passed', field: "content" }).isString().trim().isLength({ min: 1, max: 1000 }).withMessage({ message: 'Invalid content', field: "content" });
 exports.postContenteValidation = postContenteValidation;
-const postBlogIdValidation = () => (0, express_validator_1.body)('blogId').exists({ values: "falsy" }).withMessage({ message: 'blogId not passed', field: "blogId" }).isString().withMessage({ message: 'Invalid blogId', field: "blogId" });
-exports.postBlogIdValidation = postBlogIdValidation;
-const authBlogIsExistsValidationMiddleware = () => (0, express_validator_1.body)('blogId').custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
+const postBlogIdValidation = () => (0, express_validator_1.body)('blogId').exists({ values: "falsy" }).withMessage({ message: 'blogId not passed', field: "blogId" }).isString().withMessage({ message: 'Invalid blogId', field: "blogId" }).custom((value, { req }) => __awaiter(void 0, void 0, void 0, function* () {
     const blogToFetch = yield db_init_1.client.db("incubator").collection("blogs").findOne({ id: req.body.blogId });
+    console.log(blogToFetch);
     if (!blogToFetch) {
-        return false;
+        throw new Error();
     }
     return true;
 })).withMessage({ message: 'no such blog', field: 'blogId' });
-exports.authBlogIsExistsValidationMiddleware = authBlogIsExistsValidationMiddleware;
+exports.postBlogIdValidation = postBlogIdValidation;

@@ -27,13 +27,14 @@ exports.postRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     return res.status(200).send(foundedPost);
 }));
-exports.postRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
         return res.sendStatus(401);
     }
     if (!result.isEmpty()) {
+        console.log("123123");
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }).map(error => error.msg) });
     }
     const blogToFetch = yield db_init_1.client.db("incubator").collection("blogs").findOne({ id: req.body.blogId });
@@ -52,9 +53,8 @@ exports.postRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), 
     res.status(201).send(newPost);
     return yield db_init_1.client.db("incubator").collection("posts").insertOne(newPost);
 }));
-exports.postRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (0, posts_validartion_1.authBlogIsExistsValidationMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = (0, express_validator_1.validationResult)(req);
-    // console.log(req.headers.authorization)
     const unathorised = result.array().find(error => error.msg === '401');
     if (unathorised) {
         return res.sendStatus(401);
@@ -70,11 +70,6 @@ exports.postRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)()
     if (!blogToFetch) {
         return res.status(400).send({ errorsMessages: [{ message: 'no such blog', field: 'blogId' }] });
     }
-    // postToUpdate.title = req.body.title
-    // postToUpdate.shortDescription = req.body.shortDescription
-    // postToUpdate.content = req.body.content
-    // postToUpdate.blogId = blogToFetch.id
-    // postToUpdate.blogName =  blogToFetch.name
     yield db_init_1.client.db("incubator").collection("posts")
         .updateOne({ id: req.params.id }, { $set: { title: req.body.title,
             shortDescription: req.body.shortDescription,

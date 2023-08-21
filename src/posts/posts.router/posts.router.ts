@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
 import { validationResult } from "express-validator";
-import { authBlogIsExistsValidationMiddleware, postBlogIdValidation, postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
+import {  postBlogIdValidation, postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../../blogs/db/db.init";
 
@@ -28,7 +28,6 @@ postRouter.post('/',
     postShortDescriptionValidation(),
     postContenteValidation(),
     postBlogIdValidation(),
-    authBlogIsExistsValidationMiddleware(),
 
     async (req:RequestWithBody<{title:string, shortDescription:string, content:string, blogId:string}>, res :Response) =>{
     
@@ -41,6 +40,7 @@ postRouter.post('/',
     }
 
     if(!result.isEmpty()){
+        console.log("123123")
         return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
     }
     
@@ -70,11 +70,9 @@ postRouter.put('/:id',
     postShortDescriptionValidation(),
     postContenteValidation(),
     postBlogIdValidation(),
-    authBlogIsExistsValidationMiddleware(),
     async (req:RequestWithParamAndBody<{id:string},{title:string, shortDescription:string, content:string, blogId:string}>, res :Response) =>{
     
     const result = validationResult(req)
-    // console.log(req.headers.authorization)
 
     const unathorised = result.array().find(error => error.msg === '401')
 
@@ -92,19 +90,11 @@ postRouter.put('/:id',
         return res.status(404).send("post is not found")
     }
 
-    
-
     const blogToFetch = await client.db("incubator").collection("blogs").findOne({id: req.body.blogId})
 
     if(!blogToFetch){
         return res.status(400).send({errorsMessages:[{message: 'no such blog', field:'blogId'}]})
     }
-
-    // postToUpdate.title = req.body.title
-    // postToUpdate.shortDescription = req.body.shortDescription
-    // postToUpdate.content = req.body.content
-    // postToUpdate.blogId = blogToFetch.id
-    // postToUpdate.blogName =  blogToFetch.name
     
     await client.db("incubator").collection("posts")
         .updateOne({id: req.params.id}, {$set:
@@ -113,7 +103,6 @@ postRouter.put('/:id',
             content: req.body.content,
             blogId: blogToFetch.id,
             blogName: blogToFetch.name}})
-
 
     return res.sendStatus(204)
 
