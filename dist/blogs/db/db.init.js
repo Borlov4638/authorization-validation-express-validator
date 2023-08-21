@@ -9,30 +9,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.runDB = exports.client = void 0;
 const mongodb_1 = require("mongodb");
 // Replace the placeholder with your Atlas connection string
 const uri = "mongodb+srv://mrwiggle40000:OErZka7OiZTiToGx@cluster0.dt0bgxc.mongodb.net/";
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new mongodb_1.MongoClient(uri, {
+exports.client = new mongodb_1.MongoClient(uri, {
     serverApi: {
         version: mongodb_1.ServerApiVersion.v1,
         strict: true,
         deprecationErrors: true,
     }
 });
-function run() {
+function runDB() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             // Connect the client to the server (optional starting in v4.7)
-            yield client.connect();
+            yield exports.client.connect();
             // Send a ping to confirm a successful connection
-            yield client.db("admin").command({ ping: 1 });
+            yield exports.client.db("incubator").command({ ping: 1 });
             console.log("Pinged your deployment. You successfully connected to MongoDB!");
         }
-        finally {
+        catch (_a) {
             // Ensures that the client will close when you finish/error
-            yield client.close();
+            console.log("Error occured within connection to DB");
+            yield exports.client.close();
         }
     });
 }
-run().catch(console.dir);
+exports.runDB = runDB;
