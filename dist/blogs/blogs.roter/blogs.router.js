@@ -17,11 +17,11 @@ const auth_middleware_1 = require("../../auth/auth.middleware");
 const db_init_1 = require("../db/db.init");
 exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const blogsToSend = yield db_init_1.client.db("incubator").collection("blogs").find({}).toArray();
+    const blogsToSend = yield db_init_1.client.db("incubator").collection("blogs").find({}, { projection: { _id: 0 } }).toArray();
     res.status(200).send(blogsToSend);
 }));
 exports.blogsRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const findedBlog = yield db_init_1.client.db("incubator").collection("blogs").findOne({ id: req.params.id });
+    const findedBlog = yield db_init_1.client.db("incubator").collection("blogs").findOne({ id: req.params.id }, { projection: { _id: 0 } });
     if (findedBlog) {
         res.status(200).send(findedBlog);
     }

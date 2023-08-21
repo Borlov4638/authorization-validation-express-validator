@@ -8,12 +8,12 @@ import { client } from "../../blogs/db/db.init";
 export const postRouter = Router({})
 
 postRouter.get('/', async (req :Request, res :Response) =>{
-    const postsToReturn = await client.db("incubator").collection("posts").find({}).toArray()
+    const postsToReturn = await client.db("incubator").collection("posts").find({}, {projection:{_id:0}}).toArray()
     res.status(200).send(postsToReturn)
 })
 
 postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response) =>{
-    const foundedPost = await client.db("incubator").collection("posts").findOne({id: req.params.id})
+    const foundedPost = await client.db("incubator").collection("posts").findOne({id: req.params.id}, {projection:{_id:0}})
 
     if(!foundedPost){
         return res.sendStatus(404)

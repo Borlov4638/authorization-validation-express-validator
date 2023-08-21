@@ -17,11 +17,11 @@ const auth_middleware_1 = require("../../auth/auth.middleware");
 const db_init_1 = require("../../blogs/db/db.init");
 exports.postRouter = (0, express_1.Router)({});
 exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const postsToReturn = yield db_init_1.client.db("incubator").collection("posts").find({}).toArray();
+    const postsToReturn = yield db_init_1.client.db("incubator").collection("posts").find({}, { projection: { _id: 0 } }).toArray();
     res.status(200).send(postsToReturn);
 }));
 exports.postRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const foundedPost = yield db_init_1.client.db("incubator").collection("posts").findOne({ id: req.params.id });
+    const foundedPost = yield db_init_1.client.db("incubator").collection("posts").findOne({ id: req.params.id }, { projection: { _id: 0 } });
     if (!foundedPost) {
         return res.sendStatus(404);
     }

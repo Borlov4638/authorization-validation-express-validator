@@ -12,12 +12,12 @@ import { client } from "../db/db.init";
 export const blogsRouter : Router = Router({})
 
 blogsRouter.get('/', async (req:Request, res: Response) => {
-    const blogsToSend = await client.db("incubator").collection("blogs").find({}).toArray()
+    const blogsToSend = await client.db("incubator").collection("blogs").find({ },{projection:{_id:0}}).toArray()
     res.status(200).send(blogsToSend)
 })
 
 blogsRouter.get('/:id', async (req:RequestWithParam<{id:string}>, res:Response) => {
-    const findedBlog = await client.db("incubator").collection("blogs").findOne({id: req.params.id})
+    const findedBlog = await client.db("incubator").collection("blogs").findOne({id: req.params.id}, {projection:{_id:0}})
 
     if (findedBlog){
         res.status(200).send(findedBlog)
