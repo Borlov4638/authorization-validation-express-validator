@@ -1,9 +1,9 @@
 import { Request, Response, Router } from "express";
-import { blogsDB } from "../db/blogs.db";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
 import { validationResult } from "express-validator";
 import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation } from "../validation/blog.validatiom";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
+import { client } from "../db/db.init";
 
 
 
@@ -11,13 +11,13 @@ import { authValidationMiddleware } from "../../auth/auth.middleware";
 
 export const blogsRouter : Router = Router({})
 
-blogsRouter.get('/', (req:Request, res: Response) => {
-
-    res.status(200).send(blogsDB)
+blogsRouter.get('/', async (req:Request, res: Response) => {
+    const blogsToSend = await client.db("incubator").collection("blogs").find({}).toArray()
+    res.status(200).send(blogsToSend)
 })
 
-blogsRouter.get('/:id', (req:RequestWithParam<{id:string}>, res:Response) => {
-    const findedBlog = blogsDB.find(blog => blog.id === req.params.id)
+blogsRouter.get('/:id', async (req:RequestWithParam<{id:string}>, res:Response) => {
+    const findedBlog = await client.db("incubator").collection("blogs").findOne({id: req.params.id})
 
     if (findedBlog){
         res.status(200).send(findedBlog)
@@ -53,10 +53,13 @@ blogsRouter.post('/',
             id: (+new Date()).toString(),
             name: req.body.name,
             description: req.body.description,
-            websiteUrl: req.body.websiteUrl
+            websiteUrl: req.body.websiteUrl,
+            createdAt: (new Date()).toISOString(),
+            isMembership: true
         }
+        await client.db("incubator").collection("blogs").insertOne(newBlog)
 
-        blogsDB.push(newBlog)
+        // blogsDB.push(newBlog)
         return res.status(201).send(newBlog)
 
 })
@@ -79,8 +82,8 @@ blogsRouter.put('/:id',
         if(unathorised){
             return res.sendStatus(401)
         }
-
-        const findBlogToUpdate = blogsDB.find(blog => blog.id === req.params.id)
+        const findBlogToUpdate = await client.db("incubator").collection("blogs").findOne({id: req.params.id})
+        // const findBlogToUpdate = blogsDB.find(blog => blog.id === req.params.id)
 
         if(!findBlogToUpdate){
             return res.sendStatus(404)
@@ -90,16 +93,18 @@ blogsRouter.put('/:id',
             return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
         }
 
-        findBlogToUpdate.description = req.body.description
-        findBlogToUpdate.name = req.body.name
-        findBlogToUpdate.websiteUrl = req.body.websiteUrl
+        // findBlogToUpdate.description = req.body.description
+        // findBlogToUpdate.name = req.body.name
+        // findBlogToUpdate.websiteUrl = req.body.websiteUrl
 
+        await client.db("incubator").collection("blogs").updateOne({id: req.params.id}, {$set:{websiteUrl:req.body.websiteUrl ,name:req.body.name, description: req.body.description}})
+        
         return res.sendStatus(204)
 })
 
 blogsRouter.delete('/:id',
     authValidationMiddleware(),
-    (req:Request, res:Response) =>{
+    async (req:Request, res:Response) =>{
 
     const result = validationResult(req)
     const unathorised = result.array().find(error => error.msg === '401')
@@ -107,14 +112,16 @@ blogsRouter.delete('/:id',
     if(unathorised){
         return res.sendStatus(401)
     }
+    const findBlogToDelete = await client.db("incubator").collection("blogs").findOne({id: req.params.id})
 
-    const findBlogToUpdate = blogsDB.find(blog => blog.id === req.params.id)
+    // const findBlogToUpdate = blogsDB.find(blog => blog.id === req.params.id)
 
-    if(!findBlogToUpdate){
+    if(!findBlogToDelete){
         return res.sendStatus(404)
     }
 
-    blogsDB.splice(blogsDB.indexOf(findBlogToUpdate), 1)
+    client.db("incubator").collection("blogs").deleteOne({id: req.params.id})
+    // blogsDB.splice(blogsDB.indexOf(findBlogToUpdate), 1)
 
     return res.sendStatus(204)
 })
