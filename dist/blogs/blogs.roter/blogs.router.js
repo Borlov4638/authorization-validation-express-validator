@@ -15,10 +15,31 @@ const blog_validatiom_1 = require("../validation/blog.validatiom");
 const auth_middleware_1 = require("../../auth/auth.middleware");
 const db_init_1 = require("../db/db.init");
 const mongodb_1 = require("mongodb");
+const blogs_repository_1 = require("../repository/blogs.repository");
 exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const blogsToSend = yield db_init_1.client.db("incubator").collection("blogs").find({}, { projection: { _id: 0 } }).toArray();
-    res.status(200).send(blogsToSend);
+    const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : '';
+    const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
+    const sortDirection = (req.query.sortDirection === "desc") ? -1 : 1;
+    const sotringQuery = blogs_repository_1.blogsRepository.blogsSortingQuery(sortBy, sortDirection);
+    const pageNumber = (req.query.pageNumber) ? req.query.pageNumber : 1;
+    const pageSize = (req.query.pageSize) ? req.query.pageSize : 10;
+    const itemsToSkip = (pageNumber - 1) * pageSize;
+    const blogsToSend = yield db_init_1.client.db("incubator").collection("blogs").find({ name: { $regex: searchNameTerm } }, { projection: { _id: 0 } })
+        .sort(sotringQuery)
+        .skip(itemsToSkip)
+        .limit(pageSize)
+        .toArray();
+    const totalCountOfItems = yield db_init_1.client.db("incubator").collection("blogs")
+        .find({ name: { $regex: searchNameTerm } }).toArray();
+    const mappedResponse = {
+        pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
+        page: pageNumber,
+        pageSize: pageSize,
+        totalCount: totalCountOfItems.length,
+        items: [...blogsToSend]
+    };
+    res.status(200).send(mappedResponse);
 }));
 exports.blogsRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const requestId = new mongodb_1.ObjectId(`${req.params.id}`);

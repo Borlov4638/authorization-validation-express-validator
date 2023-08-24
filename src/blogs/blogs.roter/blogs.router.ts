@@ -1,15 +1,46 @@
 import { Request, Response, Router } from "express";
-import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
+import { RequestWithBody, RequestWithParam, RequestWithParamAndBody, RequestWithQuery } from "../../types/blogs.request.types";
 import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation, validationResultMiddleware } from "../validation/blog.validatiom";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../db/db.init";
 import { ObjectId } from "mongodb";
+import { blogsRepository } from "../repository/blogs.repository";
 
 export const blogsRouter : Router = Router({})
 
-blogsRouter.get('/', async (req:Request, res: Response) => {
-    const blogsToSend = await client.db("incubator").collection("blogs").find({ },{projection:{_id:0}}).toArray()
-    res.status(200).send(blogsToSend)
+blogsRouter.get('/', async (req:RequestWithQuery<{searchNameTerm:string, sortBy:string, sortDirection:string, pageNumber:number, pageSize:number}>, res: Response) => {
+
+    const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : ''
+
+    const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt"
+
+    const sortDirection = (req.query.sortDirection === "desc") ? -1 : 1
+    
+    const sotringQuery = blogsRepository.blogsSortingQuery(sortBy, sortDirection)
+
+    const pageNumber = (req.query.pageNumber) ? req.query.pageNumber : 1
+
+    const pageSize = (req.query.pageSize) ? req.query.pageSize : 10
+
+    const itemsToSkip = (pageNumber - 1) * pageSize
+
+    const blogsToSend = await client.db("incubator").collection("blogs").find({ name: {$regex: searchNameTerm}},{projection:{_id:0}})
+        .sort(sotringQuery)
+        .skip(itemsToSkip)
+        .limit(pageSize)
+        .toArray()
+
+    const totalCountOfItems = await client.db("incubator").collection("blogs")
+        .find({ name: {$regex: searchNameTerm}}).toArray()
+
+    const mappedResponse = {
+        pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
+        page: pageNumber,
+        pageSize: pageSize,
+        totalCount: totalCountOfItems.length,
+        items: [...blogsToSend]
+    }
+    res.status(200).send(mappedResponse)
 })
 
 blogsRouter.get('/:id', async (req:RequestWithParam<{id:string}>, res:Response) => {
