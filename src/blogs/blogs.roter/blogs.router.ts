@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
 import { validationResult } from "express-validator";
-import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation } from "../validation/blog.validatiom";
+import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation, validationResultMiddleware } from "../validation/blog.validatiom";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../db/db.init";
 
@@ -28,15 +28,10 @@ blogsRouter.post('/',
     blogDescriptionValidation(),
     blogUrlValidation(),
     blogUrlMatchingValidation(),
+    validationResultMiddleware,
     
     async (req: RequestWithBody<{name:string, description:string, websiteUrl:string}>, res:Response) =>{
     
-        const result = validationResult(req)
-
-        if(!result.isEmpty()){
-            return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
-        }
-
         const newBlog = 
         {
             id: (+new Date()).toString(),
@@ -58,19 +53,14 @@ blogsRouter.put('/:id',
     blogDescriptionValidation(),
     blogUrlValidation(),
     blogUrlMatchingValidation(),
+    validationResultMiddleware,
 
     async (req: RequestWithParamAndBody<{id:string},{name:string, description:string, websiteUrl:string}>, res:Response) =>{
         
-        const result = validationResult(req)
-
         const findBlogToUpdate = await client.db("incubator").collection("blogs").findOne({id: req.params.id})
 
         if(!findBlogToUpdate){
             return res.sendStatus(404)
-        }
-
-        if(!result.isEmpty()){
-            return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
         }
 
         await client.db("incubator").collection("blogs").updateOne({id: req.params.id}, {$set:{websiteUrl:req.body.websiteUrl ,name:req.body.name, description: req.body.description}})
@@ -82,8 +72,6 @@ blogsRouter.delete('/:id',
     authValidationMiddleware,
     async (req:Request, res:Response) =>{
 
-    const result = validationResult(req)
-    
     const findBlogToDelete = await client.db("incubator").collection("blogs").findOne({id: req.params.id})
 
     if(!findBlogToDelete){

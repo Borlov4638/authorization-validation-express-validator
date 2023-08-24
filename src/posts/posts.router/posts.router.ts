@@ -4,6 +4,7 @@ import { validationResult } from "express-validator";
 import {  postBlogIdValidation, postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../../blogs/db/db.init";
+import { validationResultMiddleware } from "../../blogs/validation/blog.validatiom";
 
 export const postRouter = Router({})
 
@@ -28,15 +29,9 @@ postRouter.post('/',
     postShortDescriptionValidation(),
     postContenteValidation(),
     postBlogIdValidation(),
+    validationResultMiddleware,
 
     async (req:RequestWithBody<{title:string, shortDescription:string, content:string, blogId:string}>, res :Response) =>{
-    
-    const result = validationResult(req)
-    
-    if(!result.isEmpty()){
-        console.log("123123")
-        return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
-    }
     
     const blogToFetch  = await client.db("incubator").collection("blogs").findOne({id: req.body.blogId})
 
@@ -64,14 +59,10 @@ postRouter.put('/:id',
     postShortDescriptionValidation(),
     postContenteValidation(),
     postBlogIdValidation(),
+    validationResultMiddleware,
+
     async (req:RequestWithParamAndBody<{id:string},{title:string, shortDescription:string, content:string, blogId:string}>, res :Response) =>{
     
-    const result = validationResult(req)
-
-    if(!result.isEmpty()){
-        return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
-    }
-
     const postToUpdate = await client.db("incubator").collection("posts").findOne({id:req.params.id})
 
     if(!postToUpdate){
@@ -99,8 +90,6 @@ postRouter.put('/:id',
 postRouter.delete('/:id',
     authValidationMiddleware,
     async (req:Request, res:Response) =>{
-
-    const result = validationResult(req)
 
     const postToDelete = await client.db("incubator").collection("posts").findOne({id:req.params.id})
 

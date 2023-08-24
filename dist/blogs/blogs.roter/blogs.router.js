@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.blogsRouter = void 0;
 const express_1 = require("express");
-const express_validator_1 = require("express-validator");
 const blog_validatiom_1 = require("../validation/blog.validatiom");
 const auth_middleware_1 = require("../../auth/auth.middleware");
 const db_init_1 = require("../db/db.init");
@@ -29,15 +28,7 @@ exports.blogsRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, 
         res.sendStatus(404);
     }
 }));
-exports.blogsRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = (0, express_validator_1.validationResult)(req);
-    const unathorised = result.array().find(error => error.msg === '401');
-    if (unathorised) {
-        return res.sendStatus(401);
-    }
-    if (!result.isEmpty()) {
-        return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }).map(error => error.msg) });
-    }
+exports.blogsRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const newBlog = {
         id: (+new Date()).toString(),
         name: req.body.name,
@@ -48,40 +39,20 @@ exports.blogsRouter.post('/', (0, auth_middleware_1.authValidationMiddleware)(),
     };
     res.status(201).send(newBlog);
     return yield db_init_1.client.db("incubator").collection("blogs").insertOne(newBlog);
-    // blogsDB.push(newBlog)
 }));
-exports.blogsRouter.put('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = (0, express_validator_1.validationResult)(req);
-    const unathorised = result.array().find(error => error.msg === '401');
-    if (unathorised) {
-        return res.sendStatus(401);
-    }
+exports.blogsRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const findBlogToUpdate = yield db_init_1.client.db("incubator").collection("blogs").findOne({ id: req.params.id });
-    // const findBlogToUpdate = blogsDB.find(blog => blog.id === req.params.id)
     if (!findBlogToUpdate) {
         return res.sendStatus(404);
     }
-    if (!result.isEmpty()) {
-        return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }).map(error => error.msg) });
-    }
-    // findBlogToUpdate.description = req.body.description
-    // findBlogToUpdate.name = req.body.name
-    // findBlogToUpdate.websiteUrl = req.body.websiteUrl
     yield db_init_1.client.db("incubator").collection("blogs").updateOne({ id: req.params.id }, { $set: { websiteUrl: req.body.websiteUrl, name: req.body.name, description: req.body.description } });
     return res.sendStatus(204);
 }));
-exports.blogsRouter.delete('/:id', (0, auth_middleware_1.authValidationMiddleware)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = (0, express_validator_1.validationResult)(req);
-    const unathorised = result.array().find(error => error.msg === '401');
-    if (unathorised) {
-        return res.sendStatus(401);
-    }
+exports.blogsRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const findBlogToDelete = yield db_init_1.client.db("incubator").collection("blogs").findOne({ id: req.params.id });
-    // const findBlogToUpdate = blogsDB.find(blog => blog.id === req.params.id)
     if (!findBlogToDelete) {
         return res.sendStatus(404);
     }
     db_init_1.client.db("incubator").collection("blogs").deleteOne({ id: req.params.id });
-    // blogsDB.splice(blogsDB.indexOf(findBlogToUpdate), 1)
     return res.sendStatus(204);
 }));

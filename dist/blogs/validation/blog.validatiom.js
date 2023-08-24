@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.blogUrlMatchingValidation = exports.blogUrlValidation = exports.blogDescriptionValidation = exports.blogNameValidation = void 0;
+exports.validationResultMiddleware = exports.blogUrlMatchingValidation = exports.blogUrlValidation = exports.blogDescriptionValidation = exports.blogNameValidation = void 0;
 const express_validator_1 = require("express-validator");
 const blogNameValidation = () => (0, express_validator_1.body)('name').exists({ values: "falsy" }).withMessage({ message: 'name not passed', field: "name" }).isString().trim().isLength({ min: 1, max: 15 }).withMessage({ message: 'Invalid name', field: "name" });
 exports.blogNameValidation = blogNameValidation;
@@ -10,3 +10,11 @@ const blogUrlValidation = () => (0, express_validator_1.body)('websiteUrl').exis
 exports.blogUrlValidation = blogUrlValidation;
 const blogUrlMatchingValidation = () => (0, express_validator_1.body)('websiteUrl').matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).withMessage({ message: 'Invalid websiteUrl', field: "websiteUrl" });
 exports.blogUrlMatchingValidation = blogUrlMatchingValidation;
+const validationResultMiddleware = (req, res, next) => {
+    const result = (0, express_validator_1.validationResult)(req);
+    if (!result.isEmpty()) {
+        return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }).map(error => error.msg) });
+    }
+    return next();
+};
+exports.validationResultMiddleware = validationResultMiddleware;
