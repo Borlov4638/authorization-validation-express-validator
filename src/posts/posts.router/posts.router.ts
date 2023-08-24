@@ -1,18 +1,45 @@
 import { Request, Response, Router } from "express";
-import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
+import { RequestWithBody, RequestWithParam, RequestWithParamAndBody, RequestWithQuery } from "../../types/blogs.request.types";
 import {  postBlogIdValidation, postBlogIsExistsById, postContenteValidation, postIsExistsById, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../../blogs/db/db.init";
 import { validationResultMiddleware } from "../../blogs/validation/blog.validatiom";
 import { ObjectId } from "mongodb";
+import { blogsRepository } from "../../blogs/repository/blogs.repository";
 
 export const postRouter = Router({})
 
-postRouter.get('/', async (req :Request, res :Response) =>{
+postRouter.get('/', async (req :RequestWithQuery<{sortBy:string, sortDirection:string, pageNumber:number, pageSize:number}>, res :Response) =>{
 
-    const postsToReturn = await client.db("incubator").collection("posts").find({}, {projection:{_id:0}}).toArray()
+    const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt"
 
-    res.status(200).send(postsToReturn)
+    const sortDirection = (req.query.sortDirection === "desc") ? -1 : 1
+    
+    const sotringQuery = blogsRepository.postsSortingQuery(sortBy, sortDirection)
+
+    const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1
+
+    const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10
+
+    const itemsToSkip = (pageNumber - 1) * pageSize
+
+    const blogsToSend = await client.db("incubator").collection("posts").find({},{projection:{_id:0}})
+        .sort(sotringQuery)
+        .skip(itemsToSkip)
+        .limit(pageSize)
+        .toArray()
+
+    const totalCountOfItems = await client.db("incubator").collection("posts")
+        .find({}).toArray()
+
+    const mappedResponse = {
+        pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
+        page: pageNumber,
+        pageSize: pageSize,
+        totalCount: totalCountOfItems.length,
+        items: [...blogsToSend]
+    }
+    res.status(200).send(mappedResponse)
 })
 
 postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response) =>{
