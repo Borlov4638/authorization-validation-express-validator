@@ -27,7 +27,6 @@ postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response
 
 postRouter.post('/',
     authValidationMiddleware,
-    // postBlogIsExistsById,
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -41,9 +40,8 @@ postRouter.post('/',
     if(!blogToFetch){
         return res.status(400).send({errorsMessages:[{message: 'no such blog', field:'blogId'}]})
     }
-
+//use _id и приравнивать его к id
     const newPost = {
-        id: (+new Date()).toString(),
         title: req.body.title,
         shortDescription: req.body.shortDescription,
         content: req.body.content,
@@ -51,9 +49,11 @@ postRouter.post('/',
         blogName: blogToFetch.name,
         createdAt: (new Date()).toISOString()
     }
-    res.status(201).send(newPost)
+    
 
-    return await client.db("incubator").collection("posts").insertOne(newPost)
+    const insertedPost = await client.db("incubator").collection("posts").insertOne(newPost)
+    await client.db("incubator").collection("posts").updateOne({_id:insertedPost.insertedId}, {id:insertedPost.insertedId})
+    return res.status(201).send(newPost)
 })
 
 postRouter.put('/:id',
@@ -91,6 +91,8 @@ postRouter.delete('/:id',
     async (req:Request, res:Response) =>{
 
     client.db("incubator").collection("posts").findOneAndDelete({id:req.params.id})
+//deletedcount check
+// в идеале все запросы должны быть в try catch
 
     return res.sendStatus(204)
 })
