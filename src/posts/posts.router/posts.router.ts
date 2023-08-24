@@ -23,7 +23,7 @@ postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response
 })
 
 postRouter.post('/',
-    authValidationMiddleware(),
+    authValidationMiddleware,
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -33,12 +33,6 @@ postRouter.post('/',
     
     const result = validationResult(req)
     
-    const unathorised = result.array().find(error => error.msg === '401')
-
-    if(unathorised){
-        return res.sendStatus(401)
-    }
-
     if(!result.isEmpty()){
         console.log("123123")
         return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
@@ -65,7 +59,7 @@ postRouter.post('/',
 })
 
 postRouter.put('/:id',
-    authValidationMiddleware(),
+    authValidationMiddleware,
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -73,12 +67,6 @@ postRouter.put('/:id',
     async (req:RequestWithParamAndBody<{id:string},{title:string, shortDescription:string, content:string, blogId:string}>, res :Response) =>{
     
     const result = validationResult(req)
-
-    const unathorised = result.array().find(error => error.msg === '401')
-
-    if(unathorised){
-        return res.sendStatus(401)
-    }
 
     if(!result.isEmpty()){
         return res.status(400).send({errorsMessages:result.array({onlyFirstError:true}).map(error => error.msg)})
@@ -109,16 +97,10 @@ postRouter.put('/:id',
 })
 
 postRouter.delete('/:id',
-    authValidationMiddleware(),
+    authValidationMiddleware,
     async (req:Request, res:Response) =>{
 
     const result = validationResult(req)
-
-    const unathorised = result.array().find(error => error.msg === '401')
-
-    if(unathorised){
-        return res.sendStatus(401)
-    }
 
     const postToDelete = await client.db("incubator").collection("posts").findOne({id:req.params.id})
 
