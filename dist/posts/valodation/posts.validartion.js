@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.postIsExistsById = exports.postBlogIsExistsById = exports.postBlogIdValidation = exports.postContenteValidation = exports.postShortDescriptionValidation = exports.postTitleValidation = void 0;
 const express_validator_1 = require("express-validator");
 const db_init_1 = require("../../blogs/db/db.init");
+const mongodb_1 = require("mongodb");
 const postTitleValidation = () => (0, express_validator_1.body)('title').exists({ values: "falsy" }).withMessage({ message: 'title not passed', field: "title" }).isString().trim().isLength({ min: 1, max: 30 }).withMessage({ message: 'Invalid title', field: "title" });
 exports.postTitleValidation = postTitleValidation;
 const postShortDescriptionValidation = () => (0, express_validator_1.body)('shortDescription').exists({ values: "falsy" }).withMessage({ message: 'shortDescription not passed', field: "shortDescription" }).isString().trim().isLength({ min: 1, max: 100 }).withMessage({ message: 'Invalid shortDescription', field: "shortDescription" });
@@ -29,7 +30,7 @@ const postBlogIsExistsById = (req, res, next) => __awaiter(void 0, void 0, void 
 });
 exports.postBlogIsExistsById = postBlogIsExistsById;
 const postIsExistsById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const postToFetch = yield db_init_1.client.db("incubator").collection("posts").findOne({ id: req.params.id });
+    const postToFetch = yield db_init_1.client.db("incubator").collection("posts").findOne({ _id: new mongodb_1.ObjectId(req.params.id) });
     if (!postToFetch) {
         return res.sendStatus(404);
     }

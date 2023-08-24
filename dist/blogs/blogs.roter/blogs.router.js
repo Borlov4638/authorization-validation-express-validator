@@ -41,7 +41,6 @@ exports.blogsRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, bl
     const insertedPost = yield db_init_1.client.db("incubator").collection("blogs").insertOne(newBlog);
     yield db_init_1.client.db("incubator").collection("blogs").updateOne({ _id: insertedPost.insertedId }, { $set: { id: insertedPost.insertedId } });
     const blogToShow = yield db_init_1.client.db("incubator").collection("blogs").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0 } });
-    console.log(insertedPost.insertedId);
     return res.status(201).send(blogToShow);
 }));
 exports.blogsRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

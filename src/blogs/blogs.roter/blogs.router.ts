@@ -47,7 +47,6 @@ blogsRouter.post('/',
         const insertedPost = await client.db("incubator").collection("blogs").insertOne(newBlog)
         await client.db("incubator").collection("blogs").updateOne({_id:insertedPost.insertedId}, {$set:{id:insertedPost.insertedId}})
         const blogToShow = await client.db("incubator").collection("blogs").findOne({_id:insertedPost.insertedId}, {projection:{_id:0}})
-        console.log(insertedPost.insertedId)
         return res.status(201).send(blogToShow)
 })
 
