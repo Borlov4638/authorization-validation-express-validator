@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { RequestWithBody, RequestWithParam, RequestWithParamAndBody, RequestWithQuery } from "../../types/blogs.request.types";
+import { RequestWithBody, RequestWithParam, RequestWithParamAndBody, RequestWithParamAndQuery, RequestWithQuery } from "../../types/blogs.request.types";
 import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation, validationResultMiddleware } from "../validation/blog.validatiom";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../db/db.init";
@@ -18,9 +18,9 @@ blogsRouter.get('/', async (req:RequestWithQuery<{searchNameTerm:string, sortBy:
     
     const sotringQuery = blogsRepository.blogsSortingQuery(sortBy, sortDirection)
 
-    const pageNumber = (req.query.pageNumber) ? req.query.pageNumber : 1
+    const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1
 
-    const pageSize = (req.query.pageSize) ? req.query.pageSize : 10
+    const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10
 
     const itemsToSkip = (pageNumber - 1) * pageSize
 
@@ -119,3 +119,43 @@ blogsRouter.delete('/:id',
 })
 
 
+blogsRouter.get('/:blogId/posts', async (req:RequestWithParamAndQuery<{blogId:string}, {pageNumber:number, pageSize:number, sortBy:string, sortDirection:string}>, res:Response) =>{
+    const blogToInsert = await client.db("incubator").collection("blogs").findOne({_id: new ObjectId(req.params.blogId)})
+
+    if(!blogToInsert){
+        return res.sendStatus(404)
+    }
+
+    const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt"
+
+    const sortDirection = (req.query.sortDirection === "desc") ? -1 : 1
+    
+    const sotringQuery = blogsRepository.postsSortingQuery(sortBy, sortDirection)
+
+    const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1
+
+    const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10
+
+    const itemsToSkip = (pageNumber - 1) * pageSize
+
+    const blogsToSend = await client.db("incubator").collection("posts").find({blogId:blogToInsert._id},{projection:{_id:0}})
+        .sort(sotringQuery)
+        .skip(itemsToSkip)
+        .limit(pageSize)
+        .toArray()
+
+    const totalCountOfItems = await client.db("incubator").collection("posts")
+        .find({blogId:blogToInsert._id}).toArray()
+
+    const mappedResponse = {
+        pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
+        page: pageNumber,
+        pageSize: pageSize,
+        totalCount: totalCountOfItems.length,
+        items: [...blogsToSend]
+    }
+    return res.status(200).send(mappedResponse)
+
+    
+
+})

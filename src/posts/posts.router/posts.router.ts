@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody, RequestWithQuery } from "../../types/blogs.request.types";
-import {  postBlogIdValidation, postBlogIsExistsById, postContenteValidation, postIsExistsById, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
+import {  postBlogIdValidation, postContenteValidation, postIsExistsById, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../../blogs/db/db.init";
 import { validationResultMiddleware } from "../../blogs/validation/blog.validatiom";
