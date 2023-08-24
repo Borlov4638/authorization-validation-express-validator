@@ -16,6 +16,7 @@ const auth_middleware_1 = require("../../auth/auth.middleware");
 const db_init_1 = require("../db/db.init");
 const mongodb_1 = require("mongodb");
 const blogs_repository_1 = require("../repository/blogs.repository");
+const posts_validartion_1 = require("../../posts/valodation/posts.validartion");
 exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : '';
@@ -107,4 +108,22 @@ exports.blogsRouter.get('/:blogId/posts', (req, res) => __awaiter(void 0, void 0
         items: [...blogsToSend]
     };
     return res.status(200).send(mappedResponse);
+}));
+exports.blogsRouter.post('/:blogId/posts', auth_middleware_1.authValidationMiddleware, (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const blogToInsert = yield db_init_1.client.db("incubator").collection("blogs").findOne({ _id: new mongodb_1.ObjectId(req.params.blogId) });
+    if (!blogToInsert) {
+        return res.sendStatus(404);
+    }
+    const newPost = {
+        title: req.body.title,
+        shortDescription: req.body.shortDescription,
+        content: req.body.content,
+        blogId: blogToInsert.id,
+        blogName: blogToInsert.name,
+        createdAt: (new Date()).toISOString()
+    };
+    const insertedPost = yield db_init_1.client.db("incubator").collection("posts").insertOne(newPost);
+    yield db_init_1.client.db("incubator").collection("posts").updateOne({ _id: insertedPost.insertedId }, { $set: { id: insertedPost.insertedId } });
+    const postToShow = yield db_init_1.client.db("incubator").collection("posts").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0 } });
+    return res.status(201).send(postToShow);
 }));
