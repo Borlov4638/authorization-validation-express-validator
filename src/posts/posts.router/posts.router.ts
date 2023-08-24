@@ -1,7 +1,6 @@
 import { Request, Response, Router } from "express";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
-import { validationResult } from "express-validator";
-import {  postBlogIdValidation, postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
+import {  postBlogIdValidation, postBlogIsExistsById, postContenteValidation, postIsExistsById, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../../blogs/db/db.init";
 import { validationResultMiddleware } from "../../blogs/validation/blog.validatiom";
@@ -9,11 +8,14 @@ import { validationResultMiddleware } from "../../blogs/validation/blog.validati
 export const postRouter = Router({})
 
 postRouter.get('/', async (req :Request, res :Response) =>{
+
     const postsToReturn = await client.db("incubator").collection("posts").find({}, {projection:{_id:0}}).toArray()
+
     res.status(200).send(postsToReturn)
 })
 
 postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response) =>{
+
     const foundedPost = await client.db("incubator").collection("posts").findOne({id: req.params.id}, {projection:{_id:0}})
 
     if(!foundedPost){
@@ -25,6 +27,7 @@ postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response
 
 postRouter.post('/',
     authValidationMiddleware,
+    // postBlogIsExistsById,
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -55,6 +58,7 @@ postRouter.post('/',
 
 postRouter.put('/:id',
     authValidationMiddleware,
+    postIsExistsById,
     postTitleValidation(),
     postShortDescriptionValidation(),
     postContenteValidation(),
@@ -63,12 +67,6 @@ postRouter.put('/:id',
 
     async (req:RequestWithParamAndBody<{id:string},{title:string, shortDescription:string, content:string, blogId:string}>, res :Response) =>{
     
-    const postToUpdate = await client.db("incubator").collection("posts").findOne({id:req.params.id})
-
-    if(!postToUpdate){
-        return res.status(404).send("post is not found")
-    }
-
     const blogToFetch = await client.db("incubator").collection("blogs").findOne({id: req.body.blogId})
 
     if(!blogToFetch){
@@ -89,13 +87,9 @@ postRouter.put('/:id',
 
 postRouter.delete('/:id',
     authValidationMiddleware,
+    postIsExistsById,
     async (req:Request, res:Response) =>{
 
-    const postToDelete = await client.db("incubator").collection("posts").findOne({id:req.params.id})
-
-    if(!postToDelete){
-        return res.sendStatus(404)
-    }
     client.db("incubator").collection("posts").findOneAndDelete({id:req.params.id})
 
     return res.sendStatus(204)

@@ -1,6 +1,5 @@
 import { Request, Response, Router } from "express";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody } from "../../types/blogs.request.types";
-import { validationResult } from "express-validator";
 import { blogDescriptionValidation, blogNameValidation, blogUrlMatchingValidation, blogUrlValidation, validationResultMiddleware } from "../validation/blog.validatiom";
 import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../db/db.init";
