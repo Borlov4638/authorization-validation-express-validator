@@ -13,7 +13,7 @@ postRouter.get('/', async (req :RequestWithQuery<{sortBy:string, sortDirection:s
 
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt"
 
-    const sortDirection = (req.query.sortDirection === "desc") ? -1 : 1
+    const sortDirection = (req.query.sortDirection === "asc") ? 1 : -1
     
     const sotringQuery = blogsRepository.postsSortingQuery(sortBy, sortDirection)
 
