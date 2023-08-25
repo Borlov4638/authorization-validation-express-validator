@@ -21,18 +21,18 @@ exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : '';
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
-    const sortDirection = (req.query.sortDirection === "desc") ? 1 : -1;
+    const sortDirection = (req.query.sortDirection === "asc") ? 1 : -1;
     const sotringQuery = blogs_repository_1.blogsRepository.blogsSortingQuery(sortBy, sortDirection);
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;
     const itemsToSkip = (pageNumber - 1) * pageSize;
-    const blogsToSend = yield db_init_1.client.db("incubator").collection("blogs").find({ name: { $regex: searchNameTerm } }, { projection: { _id: 0 } })
+    const blogsToSend = yield db_init_1.client.db("incubator").collection("blogs").find({ name: { $regex: searchNameTerm, $options: 'i' } }, { projection: { _id: 0 } })
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray();
     const totalCountOfItems = yield db_init_1.client.db("incubator").collection("blogs")
-        .find({ name: { $regex: searchNameTerm } }).toArray();
+        .find({ name: { $regex: searchNameTerm, $options: 'i' } }).toArray();
     const mappedResponse = {
         pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
         page: pageNumber,
@@ -89,7 +89,7 @@ exports.blogsRouter.get('/:blogId/posts', (req, res) => __awaiter(void 0, void 0
         return res.sendStatus(404);
     }
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
-    const sortDirection = (req.query.sortDirection === "desc") ? 1 : -1;
+    const sortDirection = (req.query.sortDirection === "asc") ? 1 : -1;
     const sotringQuery = blogs_repository_1.blogsRepository.postsSortingQuery(sortBy, sortDirection);
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;

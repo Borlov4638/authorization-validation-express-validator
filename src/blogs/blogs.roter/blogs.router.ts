@@ -5,7 +5,7 @@ import { authValidationMiddleware } from "../../auth/auth.middleware";
 import { client } from "../db/db.init";
 import { ObjectId } from "mongodb";
 import { blogsRepository } from "../repository/blogs.repository";
-import { postBlogIdValidation, postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
+import { postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
 
 export const blogsRouter : Router = Router({})
 
@@ -25,14 +25,14 @@ blogsRouter.get('/', async (req:RequestWithQuery<{searchNameTerm:string, sortBy:
 
     const itemsToSkip = (pageNumber - 1) * pageSize
 
-    const blogsToSend = await client.db("incubator").collection("blogs").find({ name: {$regex: searchNameTerm}},{projection:{_id:0}})
+    const blogsToSend = await client.db("incubator").collection("blogs").find({ name: {$regex: searchNameTerm, $options:'i'}},{projection:{_id:0}})
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray()
 
     const totalCountOfItems = await client.db("incubator").collection("blogs")
-        .find({ name: {$regex: searchNameTerm}}).toArray()
+        .find({ name: {$regex: searchNameTerm, $options:'i'}}).toArray()
 
     const mappedResponse = {
         pagesCount: Math.ceil(totalCountOfItems.length / pageSize),

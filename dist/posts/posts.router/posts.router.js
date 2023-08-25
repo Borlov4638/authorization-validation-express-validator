@@ -20,7 +20,7 @@ const blogs_repository_1 = require("../../blogs/repository/blogs.repository");
 exports.postRouter = (0, express_1.Router)({});
 exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
-    const sortDirection = (req.query.sortDirection === "desc") ? 1 : -1;
+    const sortDirection = (req.query.sortDirection === "asc") ? 1 : -1;
     const sotringQuery = blogs_repository_1.blogsRepository.postsSortingQuery(sortBy, sortDirection);
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;
