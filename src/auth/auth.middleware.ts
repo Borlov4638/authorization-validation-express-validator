@@ -1,20 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import { ExpressValidator, header } from "express-validator";
+import * as bcrypt from 'bcrypt'
+import { RequestWithQuery } from "../types/blogs.request.types";
 
 
-export const authValidationMiddleware = (req:Request, res: Response, next: NextFunction) => {
-    if(req.headers.authorization !== 'Basic YWRtaW46cXdlcnR5') {
-        return res.sendStatus(401)
+export const authValidationMiddleware = async (req:Request | RequestWithQuery<{}>, res: Response, next: NextFunction) => {
+    if(req.headers.authorization) {
+        return (await bcrypt.compare(req.headers.authorization, '$2b$05$iVNXGbhdkw823twlWAPuzO8m7wLpvbHoOcz98YcdCL8mqyPnNrvDq')) ? next() : res.sendStatus(401)
     }
-    return next()
+    return res.sendStatus(401)
 }
-
-
-
-// export const authValidationMiddleware = () => header('Authorization').custom((value, ) =>{
-//     if(value !== 'Basic YWRtaW46cXdlcnR5'){
-//         throw new Error('401')
-//     }
-//     return true
-// })
 

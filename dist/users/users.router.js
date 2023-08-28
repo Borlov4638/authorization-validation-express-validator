@@ -40,8 +40,9 @@ const bcript = __importStar(require("bcrypt"));
 const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
 const users_validation_1 = require("./users.validation");
 const mongodb_1 = require("mongodb");
+const auth_middleware_1 = require("../auth/auth.middleware");
 exports.usersRouter = (0, express_1.Router)({});
-exports.usersRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.usersRouter.get('/', auth_middleware_1.authValidationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchLoginTerm = (req.query.searchLoginTerm) ? req.query.searchLoginTerm : '';
     const searchEmailTerm = (req.query.searchEmailTerm) ? req.query.searchEmailTerm : '';
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
@@ -53,13 +54,14 @@ exports.usersRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, fun
     //
     //FIX FIMD METHOD
     //
-    const usersToSend = yield db_init_1.client.db("incubator").collection("users").find({ $or: [{ login: { $regex: searchLoginTerm } }, { email: { $regex: searchEmailTerm } }] }, { projection: { _id: 0, salt: 0, password: 0 } })
+    const usersToSend = yield db_init_1.client.db("incubator").collection("users")
+        .find({ $or: [{ login: { $regex: searchLoginTerm, $options: 'i' } }, { email: { $regex: searchEmailTerm, $options: 'i' } }] }, { projection: { _id: 0, password: 0 } })
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray();
     const totalCountOfItems = yield db_init_1.client.db("incubator").collection("users")
-        .find({ $or: [{ login: { $regex: searchLoginTerm } }, { email: { $regex: searchEmailTerm } }] }).toArray();
+        .find({ $or: [{ login: { $regex: searchLoginTerm, $options: 'i' } }, { email: { $regex: searchEmailTerm, $options: 'i' } }] }).toArray();
     const mappedResponse = {
         pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
         page: pageNumber,
@@ -69,7 +71,7 @@ exports.usersRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, fun
     };
     res.status(200).send(mappedResponse);
 }));
-exports.usersRouter.post('/', (0, users_validation_1.usersLoginValidation)(), (0, users_validation_1.usersEmailValidation)(), (0, users_validation_1.usersPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.usersRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, users_validation_1.usersLoginValidation)(), (0, users_validation_1.usersEmailValidation)(), (0, users_validation_1.usersPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const salt = yield bcript.genSalt(10);
     const usersPassword = yield bcript.hash(req.body.password, salt);
     const newUser = {
@@ -77,14 +79,13 @@ exports.usersRouter.post('/', (0, users_validation_1.usersLoginValidation)(), (0
         login: req.body.login,
         password: usersPassword,
         email: req.body.email,
-        salt
     };
     const insertedUser = yield db_init_1.client.db('incubator').collection('users').insertOne(newUser);
     yield db_init_1.client.db('incubator').collection('users').updateOne({ _id: insertedUser.insertedId }, { $set: { id: insertedUser.insertedId } });
-    const userToReturn = yield db_init_1.client.db('incubator').collection('users').find({ _id: insertedUser.insertedId }, { projection: { _id: 0, salt: 0, password: 0 } }).toArray();
+    const userToReturn = yield db_init_1.client.db('incubator').collection('users').find({ _id: insertedUser.insertedId }, { projection: { _id: 0, password: 0 } }).toArray();
     res.status(201).send(userToReturn);
 }));
-exports.usersRouter.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.usersRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userTodelete = yield db_init_1.client.db('incubator').collection('users').deleteOne({ _id: new mongodb_1.ObjectId(req.params.id) });
     if (userTodelete.deletedCount < 1) {
         return res.sendStatus(404);

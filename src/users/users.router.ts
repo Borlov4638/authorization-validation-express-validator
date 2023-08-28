@@ -7,10 +7,11 @@ import { body } from "express-validator";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
 import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "./users.validation";
 import { ObjectId } from "mongodb";
+import { authValidationMiddleware } from "../auth/auth.middleware";
 
 export const usersRouter = Router({})
 
-usersRouter.get('/', async (req:RequestWithQuery<{sortBy:string, sortDirection:string, pageNumber:number, pageSize: number, searchLoginTerm:string, searchEmailTerm:string}>, res:Response) =>{
+usersRouter.get('/', authValidationMiddleware, async (req:RequestWithQuery<{sortBy:string, sortDirection:string, pageNumber:number, pageSize: number, searchLoginTerm:string, searchEmailTerm:string}>, res:Response) =>{
     
     const searchLoginTerm = (req.query.searchLoginTerm) ? req.query.searchLoginTerm : ''
 
@@ -32,14 +33,15 @@ usersRouter.get('/', async (req:RequestWithQuery<{sortBy:string, sortDirection:s
     //FIX FIMD METHOD
     //
 
-    const usersToSend = await client.db("incubator").collection("users").find({ $or: [{login: {$regex: searchLoginTerm}},{email: {$regex: searchEmailTerm }}]},{projection:{_id:0, salt:0, password:0}})
+    const usersToSend = await client.db("incubator").collection("users")
+        .find({ $or: [{login: {$regex: searchLoginTerm, $options: 'i'}},{email: {$regex: searchEmailTerm, $options: 'i' }}]},{projection:{_id:0, password:0}})
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray()
 
     const totalCountOfItems = await client.db("incubator").collection("users")
-        .find({ $or: [{login: {$regex: searchLoginTerm}},{email: {$regex: searchEmailTerm }}]}).toArray()
+        .find({ $or: [{login: {$regex: searchLoginTerm, $options: 'i'}},{email: {$regex: searchEmailTerm, $options: 'i'}}]}).toArray()
 
     const mappedResponse = {
         pagesCount: Math.ceil(totalCountOfItems.length / pageSize),
@@ -52,6 +54,7 @@ usersRouter.get('/', async (req:RequestWithQuery<{sortBy:string, sortDirection:s
 })
 
 usersRouter.post('/',
+    authValidationMiddleware,
     usersLoginValidation(),
     usersEmailValidation(),
     usersPasswordValidation(),
@@ -67,16 +70,15 @@ usersRouter.post('/',
             login:req.body.login,
             password: usersPassword,
             email: req.body.email,
-            salt
         }
 
         const insertedUser = await client.db('incubator').collection('users').insertOne(newUser)
         await client.db('incubator').collection('users').updateOne({_id:insertedUser.insertedId}, {$set:{id: insertedUser.insertedId}})
-        const userToReturn = await client.db('incubator').collection('users').find({_id: insertedUser.insertedId}, {projection:{_id:0, salt:0, password:0}}).toArray()
+        const userToReturn = await client.db('incubator').collection('users').find({_id: insertedUser.insertedId}, {projection:{_id:0, password:0}}).toArray()
         res.status(201).send(userToReturn)
 })
 
-usersRouter.delete('/:id', async (req:RequestWithParam<{id:string}>, res:Response) =>{
+usersRouter.delete('/:id', authValidationMiddleware, async (req:RequestWithParam<{id:string}>, res:Response) =>{
     
     const userTodelete = await client.db('incubator').collection('users').deleteOne({_id: new ObjectId(req.params.id)})
     if(userTodelete.deletedCount < 1){
