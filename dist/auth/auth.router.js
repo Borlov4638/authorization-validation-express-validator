@@ -36,8 +36,10 @@ exports.authRouter = void 0;
 const express_1 = require("express");
 const db_init_1 = require("../blogs/db/db.init");
 const bcrypt = __importStar(require("bcrypt"));
+const auth_validation_1 = require("./auth.validation");
+const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
 exports.authRouter = (0, express_1.Router)({});
-exports.authRouter.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidation)(), (0, auth_validation_1.authPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userNameOrEmail = yield db_init_1.client.db('incubator').collection('users').findOne({ $or: [{ login: req.body.loginOrEmail }, { email: req.body.loginOrEmail }] });
     if (!userNameOrEmail) {
         return res.sendStatus(401);
