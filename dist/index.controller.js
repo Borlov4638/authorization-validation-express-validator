@@ -28,5 +28,6 @@ exports.app.use('/auth', auth_router_1.authRouter);
 exports.app.delete('/testing/all-data', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield db_init_1.client.db("incubator").collection("blogs").deleteMany({});
     yield db_init_1.client.db("incubator").collection("posts").deleteMany({});
+    yield db_init_1.client.db("incubator").collection("users").deleteMany({});
     res.sendStatus(204);
 }));

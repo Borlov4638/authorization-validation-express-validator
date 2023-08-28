@@ -23,5 +23,6 @@ app.use('/auth', authRouter)
 app.delete('/testing/all-data', async (req:Request, res:Response) =>{
     await client.db("incubator").collection("blogs").deleteMany({})
     await client.db("incubator").collection("posts").deleteMany({})
+    await client.db("incubator").collection("users").deleteMany({})
     res.sendStatus(204)
 })
