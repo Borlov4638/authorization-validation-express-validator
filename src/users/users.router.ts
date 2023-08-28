@@ -5,6 +5,7 @@ import { usersRepository } from "./users.repository";
 import * as bcript from "bcrypt"
 import { body } from "express-validator";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
+import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "./users.validation";
 
 export const usersRouter = Router({})
 
@@ -50,9 +51,9 @@ usersRouter.get('/', async (req:RequestWithQuery<{sortBy:string, sortDirection:s
 })
 
 usersRouter.post('/',
-    body('login').exists().withMessage({message:"login is not passed", field:"login"}).isString().isLength({min:3, max:10}).matches(/^[a-zA-Z0-9_-]*$/).withMessage({message:"invalid login", field:"login"}),
-    body('password').exists().withMessage({message:"password is not passed", field:"password"}).isString().isLength({min:6, max:20}).withMessage({message:"invalid password", field:"password"}),
-    body('email').exists().withMessage({message:"email is not passed", field:"email"}).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({message:"invalid email", field:"email"}),
+    usersLoginValidation(),
+    usersEmailValidation(),
+    usersPasswordValidation(),
     validationResultMiddleware,
     async (req:RequestWithBody<{login:string, password:string, email:string}>, res:Response) =>{
 

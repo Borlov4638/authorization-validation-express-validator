@@ -37,8 +37,8 @@ const express_1 = require("express");
 const db_init_1 = require("../blogs/db/db.init");
 const users_repository_1 = require("./users.repository");
 const bcript = __importStar(require("bcrypt"));
-const express_validator_1 = require("express-validator");
 const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
+const users_validation_1 = require("./users.validation");
 exports.usersRouter = (0, express_1.Router)({});
 exports.usersRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchLoginTerm = (req.query.searchLoginTerm) ? req.query.searchLoginTerm : '';
@@ -68,7 +68,7 @@ exports.usersRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, fun
     };
     res.status(200).send(mappedResponse);
 }));
-exports.usersRouter.post('/', (0, express_validator_1.body)('login').exists().withMessage({ message: "login is not passed", field: "login" }).isString().isLength({ min: 3, max: 10 }).matches(/^[a-zA-Z0-9_-]*$/).withMessage({ message: "invalid login", field: "login" }), (0, express_validator_1.body)('password').exists().withMessage({ message: "password is not passed", field: "password" }).isString().isLength({ min: 6, max: 20 }).withMessage({ message: "invalid password", field: "password" }), (0, express_validator_1.body)('email').exists().withMessage({ message: "email is not passed", field: "email" }).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({ message: "invalid email", field: "email" }), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.usersRouter.post('/', (0, users_validation_1.usersLoginValidation)(), (0, users_validation_1.usersEmailValidation)(), (0, users_validation_1.usersPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const salt = yield bcript.genSalt(10);
     const usersPassword = yield bcript.hash(req.body.password, salt);
     const newUser = {

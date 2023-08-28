@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.usersEmailValidation = exports.usersPasswordValidation = exports.usersLoginValidation = void 0;
+const express_validator_1 = require("express-validator");
+const usersLoginValidation = () => (0, express_validator_1.body)('login').exists().withMessage({ message: "login is not passed", field: "login" }).isString().isLength({ min: 3, max: 10 }).matches(/^[a-zA-Z0-9_-]*$/).withMessage({ message: "invalid login", field: "login" });
+exports.usersLoginValidation = usersLoginValidation;
+const usersPasswordValidation = () => (0, express_validator_1.body)('password').exists().withMessage({ message: "password is not passed", field: "password" }).isString().isLength({ min: 6, max: 20 }).withMessage({ message: "invalid password", field: "password" });
+exports.usersPasswordValidation = usersPasswordValidation;
+const usersEmailValidation = () => (0, express_validator_1.body)('email').exists().withMessage({ message: "email is not passed", field: "email" }).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({ message: "invalid email", field: "email" });
+exports.usersEmailValidation = usersEmailValidation;
