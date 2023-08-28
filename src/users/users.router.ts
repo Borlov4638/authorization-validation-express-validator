@@ -74,7 +74,7 @@ usersRouter.post('/',
 
         const insertedUser = await client.db('incubator').collection('users').insertOne(newUser)
         await client.db('incubator').collection('users').updateOne({_id:insertedUser.insertedId}, {$set:{id: insertedUser.insertedId}})
-        const userToReturn = await client.db('incubator').collection('users').find({_id: insertedUser.insertedId}, {projection:{_id:0, password:0}}).toArray()
+        const userToReturn = await client.db('incubator').collection('users').findOne({_id: insertedUser.insertedId}, {projection:{_id:0, password:0}})
         res.status(201).send(userToReturn)
 })
 

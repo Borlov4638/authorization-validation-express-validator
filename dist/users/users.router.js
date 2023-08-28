@@ -82,7 +82,7 @@ exports.usersRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, us
     };
     const insertedUser = yield db_init_1.client.db('incubator').collection('users').insertOne(newUser);
     yield db_init_1.client.db('incubator').collection('users').updateOne({ _id: insertedUser.insertedId }, { $set: { id: insertedUser.insertedId } });
-    const userToReturn = yield db_init_1.client.db('incubator').collection('users').find({ _id: insertedUser.insertedId }, { projection: { _id: 0, password: 0 } }).toArray();
+    const userToReturn = yield db_init_1.client.db('incubator').collection('users').findOne({ _id: insertedUser.insertedId }, { projection: { _id: 0, password: 0 } });
     res.status(201).send(userToReturn);
 }));
 exports.usersRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
