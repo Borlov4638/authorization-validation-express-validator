@@ -45,6 +45,6 @@ exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidati
         return res.sendStatus(401);
     }
     else {
-        return (yield bcrypt.hash(req.body.password, userNameOrEmail.salt)) !== userNameOrEmail.password ? res.sendStatus(401) : res.sendStatus(204);
+        return (yield (bcrypt.compare(req.body.password, userNameOrEmail.password))) ? res.sendStatus(204) : res.sendStatus(401);
     }
 }));

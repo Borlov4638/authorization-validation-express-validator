@@ -20,6 +20,6 @@ authRouter.post('/login',
         }
         else
             {
-                return await bcrypt.hash(req.body.password, userNameOrEmail.salt) !== userNameOrEmail.password ? res.sendStatus(401) : res.sendStatus(204)              
+                return await (bcrypt.compare(req.body.password, userNameOrEmail.password)) ? res.sendStatus(204) : res.sendStatus(401)              
             }
 })
