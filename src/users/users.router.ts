@@ -1,11 +1,12 @@
 import { Response, Router } from "express";
-import { RequestWithBody, RequestWithQuery } from "../types/blogs.request.types";
+import { RequestWithBody, RequestWithParam, RequestWithQuery } from "../types/blogs.request.types";
 import { client } from "../blogs/db/db.init";
 import { usersRepository } from "./users.repository";
 import * as bcript from "bcrypt"
 import { body } from "express-validator";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
 import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "./users.validation";
+import { ObjectId } from "mongodb";
 
 export const usersRouter = Router({})
 
@@ -73,4 +74,13 @@ usersRouter.post('/',
         await client.db('incubator').collection('users').updateOne({_id:insertedUser.insertedId}, {$set:{id: insertedUser.insertedId}})
         const userToReturn = await client.db('incubator').collection('users').find({_id: insertedUser.insertedId}, {projection:{_id:0, salt:0, password:0}}).toArray()
         res.status(201).send(userToReturn)
+})
+
+usersRouter.delete('/:id', async (req:RequestWithParam<{id:string}>, res:Response) =>{
+    
+    const userTodelete = await client.db('incubator').collection('users').deleteOne({_id: new ObjectId(req.params.id)})
+    if(userTodelete.deletedCount < 1){
+        return res.sendStatus(404)
+    }
+    return res.sendStatus(204)
 })

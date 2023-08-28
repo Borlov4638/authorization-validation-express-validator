@@ -39,6 +39,7 @@ const users_repository_1 = require("./users.repository");
 const bcript = __importStar(require("bcrypt"));
 const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
 const users_validation_1 = require("./users.validation");
+const mongodb_1 = require("mongodb");
 exports.usersRouter = (0, express_1.Router)({});
 exports.usersRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchLoginTerm = (req.query.searchLoginTerm) ? req.query.searchLoginTerm : '';
@@ -82,4 +83,11 @@ exports.usersRouter.post('/', (0, users_validation_1.usersLoginValidation)(), (0
     yield db_init_1.client.db('incubator').collection('users').updateOne({ _id: insertedUser.insertedId }, { $set: { id: insertedUser.insertedId } });
     const userToReturn = yield db_init_1.client.db('incubator').collection('users').find({ _id: insertedUser.insertedId }, { projection: { _id: 0, salt: 0, password: 0 } }).toArray();
     res.status(201).send(userToReturn);
+}));
+exports.usersRouter.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userTodelete = yield db_init_1.client.db('incubator').collection('users').deleteOne({ _id: new mongodb_1.ObjectId(req.params.id) });
+    if (userTodelete.deletedCount < 1) {
+        return res.sendStatus(404);
+    }
+    return res.sendStatus(204);
 }));
