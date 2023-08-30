@@ -33,14 +33,7 @@ authRouter.get('/me', (req:Request, res:Response) =>{
 
         const token : JwtPayload | null = jwtService.getUserByToken(req.headers.authorization)
         
-        if(token && Date.now() <= token.exp! * 1000){
-            delete token.exp
-            delete token.iat
-            return res.status(200).send(token) 
-
-        } else{
-             return res.sendStatus(401)
-            }
+        return token ? res.status(201).send(token) : res.sendStatus(401) 
     }
 
     return res.sendStatus(401)

@@ -33,7 +33,15 @@ exports.jwtService = {
     getUserByToken(token) {
         token = token.replace('Bearer', '').trim();
         try {
-            return jwt.verify(token, SECRET_KEY);
+            const verifiedToken = jwt.verify(token, SECRET_KEY);
+            if (verifiedToken && Date.now() <= verifiedToken.exp * 1000) {
+                delete verifiedToken.exp;
+                delete verifiedToken.iat;
+                return verifiedToken;
+            }
+            else {
+                return null;
+            }
         }
         catch (err) {
             return null;

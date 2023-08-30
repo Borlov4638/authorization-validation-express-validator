@@ -4,6 +4,15 @@ import * as jwt from 'jsonwebtoken'
 
 const SECRET_KEY = 'myverysecretkey'
 
+export interface jwtUser{
+    
+    userId:string,
+    login:string,
+    email:string,
+    exp:number,
+    iat:number
+}
+
 export const jwtService = {
 
     createToken(user: UserType){
@@ -14,7 +23,16 @@ export const jwtService = {
     getUserByToken(token: string): jwt.JwtPayload | null{
         token = token.replace('Bearer', '').trim()
         try{
-            return jwt.verify(token, SECRET_KEY) as jwt.JwtPayload
+            const verifiedToken = jwt.verify(token, SECRET_KEY) as jwt.JwtPayload
+
+            if(verifiedToken && Date.now() <= verifiedToken.exp! * 1000){
+                delete verifiedToken.exp
+                delete verifiedToken.iat
+                return verifiedToken 
+    
+            } else{
+                 return null
+                }
         }
         catch(err){
             return null

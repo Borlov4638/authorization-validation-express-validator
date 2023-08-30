@@ -7,17 +7,9 @@ import { validationResultMiddleware } from "../../blogs/validation/blog.validati
 import { ObjectId } from "mongodb";
 import { blogsRepository } from "../../blogs/repository/blogs.repository";
 import { body } from "express-validator";
-import { jwtService } from "../../app/jwt.service";
+import { jwtService, jwtUser } from "../../app/jwt.service";
 import { postsRepository } from "../posts.repository";
-
-interface jwtUser{
-    
-    userId:string,
-    login:string,
-    email:string,
-    exp:number,
-    iat:number
-}
+import { commentsContentValidation } from "../../comments/comments.validation";
 
 
 export const postRouter = Router({})
@@ -142,7 +134,7 @@ postRouter.delete('/:id',
 })
 
 postRouter.post('/:postId/comments',
-    body('content').exists().withMessage({message: 'Invalid content', field:"content"}).isString().isLength({max:300, min:20}).withMessage({message: 'Invalid content', field:"content"}),
+    commentsContentValidation(),
     validationResultMiddleware,
     async (req:RequestWithParamAndBody<{postId:string},{content: string}>, res:Response) =>{
 

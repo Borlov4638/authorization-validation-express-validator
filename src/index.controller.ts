@@ -7,6 +7,7 @@ import { ClientRequest } from "http"
 import { client } from "./blogs/db/db.init"
 import { usersRouter } from "./users/users.router"
 import { authRouter } from "./auth/auth.router"
+import { commentsRouter } from "./comments/comments.router"
 
 export const app = express()
 
@@ -19,6 +20,8 @@ app.use('/posts', postRouter)
 app.use('/users', usersRouter)
 
 app.use('/auth', authRouter)
+
+app.use('/comments', commentsRouter)
 
 app.delete('/testing/all-data', async (req:Request, res:Response) =>{
     await client.db("incubator").collection("blogs").deleteMany({})

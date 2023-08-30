@@ -17,9 +17,9 @@ const db_init_1 = require("../../blogs/db/db.init");
 const blog_validatiom_1 = require("../../blogs/validation/blog.validatiom");
 const mongodb_1 = require("mongodb");
 const blogs_repository_1 = require("../../blogs/repository/blogs.repository");
-const express_validator_1 = require("express-validator");
 const jwt_service_1 = require("../../app/jwt.service");
 const posts_repository_1 = require("../posts.repository");
+const comments_validation_1 = require("../../comments/comments.validation");
 exports.postRouter = (0, express_1.Router)({});
 exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
@@ -89,7 +89,7 @@ exports.postRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, po
     }
     return res.sendStatus(204);
 }));
-exports.postRouter.post('/:postId/comments', (0, express_validator_1.body)('content').exists().withMessage({ message: 'Invalid content', field: "content" }).isString().isLength({ max: 300, min: 20 }).withMessage({ message: 'Invalid content', field: "content" }), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postRouter.post('/:postId/comments', (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const postToComment = yield db_init_1.client.db('incubator').collection('posts').findOne({ _id: new mongodb_1.ObjectId(req.params.postId) });
     if (!postToComment) {
         return res.sendStatus(401);
