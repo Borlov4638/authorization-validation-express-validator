@@ -16,15 +16,10 @@ const jwt_service_1 = require("../app/jwt.service");
 const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
 const db_init_1 = require("../blogs/db/db.init");
 const mongodb_1 = require("mongodb");
+const auth_middleware_1 = require("../auth/auth.middleware");
 exports.commentsRouter = (0, express_1.Router)({});
-exports.commentsRouter.put('/:commentId', (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.headers.authorization) {
-        return res.sendStatus(401);
-    }
+exports.commentsRouter.put('/:commentId', auth_middleware_1.bearerAuthorization, (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const isAuthorized = jwt_service_1.jwtService.getUserByToken(req.headers.authorization);
-    if (!isAuthorized) {
-        return res.sendStatus(401);
-    }
     const commentToUpdate = yield db_init_1.client.db('incubator').collection('comments').findOne({ _id: new mongodb_1.ObjectId(req.params.commentId) });
     if (!commentToUpdate) {
         return res.sendStatus(404);

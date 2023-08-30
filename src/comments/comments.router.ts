@@ -5,24 +5,18 @@ import { jwtService, jwtUser } from "../app/jwt.service";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
 import { client } from "../blogs/db/db.init";
 import { ObjectId } from "mongodb";
+import { bearerAuthorization } from "../auth/auth.middleware";
 
 
 export const commentsRouter = Router({})
 
 commentsRouter.put('/:commentId',
+    bearerAuthorization,
     commentsContentValidation(),
     validationResultMiddleware,
     async (req:RequestWithParamAndBody<{commentId:string}, {content:string}>, res:Response) =>{
         
-        if(!req.headers.authorization){
-            return res.sendStatus(401)
-        }
-
-        const isAuthorized = jwtService.getUserByToken(req.headers.authorization) as jwtUser
-
-        if(!isAuthorized){
-            return res.sendStatus(401)
-        }
+        const isAuthorized = jwtService.getUserByToken(req.headers.authorization!) as jwtUser
 
         const commentToUpdate = await client.db('incubator').collection('comments').findOne({_id: new ObjectId(req.params.commentId)})
 

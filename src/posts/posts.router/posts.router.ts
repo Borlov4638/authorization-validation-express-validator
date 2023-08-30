@@ -141,7 +141,7 @@ postRouter.post('/:postId/comments',
         const postToComment = await client.db('incubator').collection('posts').findOne({_id:new ObjectId(req.params.postId)})
 
         if(!postToComment){
-            return res.sendStatus(401)
+            return res.sendStatus(404)
         }
 
         if(!req.headers.authorization){

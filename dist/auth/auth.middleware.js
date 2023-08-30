@@ -32,8 +32,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authValidationMiddleware = void 0;
+exports.bearerAuthorization = exports.authValidationMiddleware = void 0;
 const bcrypt = __importStar(require("bcrypt"));
+const jwt_service_1 = require("../app/jwt.service");
 const authValidationMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     if (req.headers.authorization) {
         return (yield bcrypt.compare(req.headers.authorization, '$2b$05$iVNXGbhdkw823twlWAPuzO8m7wLpvbHoOcz98YcdCL8mqyPnNrvDq')) ? next() : res.sendStatus(401);
@@ -41,3 +42,14 @@ const authValidationMiddleware = (req, res, next) => __awaiter(void 0, void 0, v
     return res.sendStatus(401);
 });
 exports.authValidationMiddleware = authValidationMiddleware;
+const bearerAuthorization = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.headers.authorization) {
+        return res.sendStatus(401);
+    }
+    const isAuthorized = jwt_service_1.jwtService.getUserByToken(req.headers.authorization);
+    if (!isAuthorized) {
+        return res.sendStatus(401);
+    }
+    return next();
+});
+exports.bearerAuthorization = bearerAuthorization;
