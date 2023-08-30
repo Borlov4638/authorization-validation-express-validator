@@ -20,7 +20,7 @@ authRouter.post('/login',
         if(userIsValid){
 
             const token = jwtService.createToken(userIsValid)
-            res.status(200).send({token})
+            res.status(200).send({accessToken:token})
         }
         else{
             res.sendStatus(401)

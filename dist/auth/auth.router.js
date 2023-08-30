@@ -20,7 +20,7 @@ exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidati
     const userIsValid = yield auth_service_1.authService.checkCredentials(req.body.loginOrEmail, req.body.password);
     if (userIsValid) {
         const token = jwt_service_1.jwtService.createToken(userIsValid);
-        res.status(200).send({ token });
+        res.status(200).send({ accessToken: token });
     }
     else {
         res.sendStatus(401);
