@@ -31,5 +31,6 @@ exports.app.delete('/testing/all-data', (req, res) => __awaiter(void 0, void 0, 
     yield db_init_1.client.db("incubator").collection("blogs").deleteMany({});
     yield db_init_1.client.db("incubator").collection("posts").deleteMany({});
     yield db_init_1.client.db("incubator").collection("users").deleteMany({});
+    yield db_init_1.client.db("incubator").collection("comments").deleteMany({});
     res.sendStatus(204);
 }));
