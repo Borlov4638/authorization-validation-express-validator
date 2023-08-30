@@ -11,7 +11,7 @@ export const authValidationMiddleware = async (req:Request | RequestWithQuery<{}
     return res.sendStatus(401)
 }
 
-export const bearerAuthorization = async (req:RequestWithParamAndBody<{commentId:string}, {content:string}>, res:Response, next:NextFunction) =>{
+export const bearerAuthorization = async (req:RequestWithParamAndBody<{}, {}>, res:Response, next:NextFunction) =>{
         
     if(!req.headers.authorization){
         return res.sendStatus(401)

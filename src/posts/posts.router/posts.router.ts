@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestWithBody, RequestWithParam, RequestWithParamAndBody, RequestWithParamAndQuery, RequestWithQuery } from "../../types/blogs.request.types";
 import {  postBlogIdValidation, postContenteValidation, postIsExistsById, postShortDescriptionValidation, postTitleValidation } from "../valodation/posts.validartion";
-import { authValidationMiddleware } from "../../auth/auth.middleware";
+import { authValidationMiddleware, bearerAuthorization } from "../../auth/auth.middleware";
 import { client } from "../../blogs/db/db.init";
 import { validationResultMiddleware } from "../../blogs/validation/blog.validatiom";
 import { ObjectId } from "mongodb";
@@ -134,6 +134,7 @@ postRouter.delete('/:id',
 })
 
 postRouter.post('/:postId/comments',
+    bearerAuthorization,
     commentsContentValidation(),
     validationResultMiddleware,
     async (req:RequestWithParamAndBody<{postId:string},{content: string}>, res:Response) =>{

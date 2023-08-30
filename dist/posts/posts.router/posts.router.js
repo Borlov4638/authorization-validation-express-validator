@@ -89,7 +89,7 @@ exports.postRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, po
     }
     return res.sendStatus(204);
 }));
-exports.postRouter.post('/:postId/comments', (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postRouter.post('/:postId/comments', auth_middleware_1.bearerAuthorization, (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const postToComment = yield db_init_1.client.db('incubator').collection('posts').findOne({ _id: new mongodb_1.ObjectId(req.params.postId) });
     if (!postToComment) {
         return res.sendStatus(404);
