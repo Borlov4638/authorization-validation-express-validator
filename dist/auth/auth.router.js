@@ -20,10 +20,10 @@ exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidati
     const userIsValid = yield auth_service_1.authService.checkCredentials(req.body.loginOrEmail, req.body.password);
     if (userIsValid) {
         const token = jwt_service_1.jwtService.createToken(userIsValid);
-        res.status(201).send({ token });
+        res.status(200).send({ token });
     }
     else {
-        res.sendStatus(404);
+        res.sendStatus(401);
     }
 }));
 exports.authRouter.get('/me', (req, res) => {
