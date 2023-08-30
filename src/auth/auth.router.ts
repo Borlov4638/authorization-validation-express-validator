@@ -1,9 +1,11 @@
-import { Response, Router } from "express";
-import { RequestWithBody } from "../types/blogs.request.types";
-import { client } from "../blogs/db/db.init";
-import * as bcrypt from "bcrypt"
+import { Request, Response, Router } from "express";
 import { authLoginOrEmailValidation, authPasswordValidation } from "./auth.validation";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
+import { authService } from "./auth.service";
+import { jwtService } from "../app/jwt.service";
+import { RequestWithBody } from "../types/blogs.request.types";
+import { JwtPayload } from "jsonwebtoken";
+
 
 export const authRouter = Router({})
 
@@ -13,13 +15,34 @@ authRouter.post('/login',
     validationResultMiddleware,
     async (req:RequestWithBody<{loginOrEmail:string, password:string}>, res:Response) =>{
 
-        const userNameOrEmail = await client.db('incubator').collection('users').findOne({$or:[{login: req.body.loginOrEmail}, {email: req.body.loginOrEmail}]})
+        const userIsValid = await authService.checkCredentials(req.body.loginOrEmail, req.body.password)
 
-        if (!userNameOrEmail){
-            return res.sendStatus(401)
+        if(userIsValid){
+
+            const token = jwtService.createToken(userIsValid)
+            res.status(201).send({token})
         }
-        else
-            {
-                return await (bcrypt.compare(req.body.password, userNameOrEmail.password)) ? res.sendStatus(204) : res.sendStatus(401)              
+        else{
+            res.sendStatus(404)
+        }
+})
+
+authRouter.get('/me', (req:Request, res:Response) =>{
+
+    if(req.headers.authorization){
+
+        const token : JwtPayload | null = jwtService.getUserByToken(req.headers.authorization)
+        
+        if(token && Date.now() <= token.exp! * 1000){
+            delete token.exp
+            delete token.iat
+            return res.status(200).send(token) 
+
+        } else{
+             return res.sendStatus(401)
             }
+    }
+
+    return res.sendStatus(401)
+
 })
