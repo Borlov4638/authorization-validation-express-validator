@@ -28,13 +28,13 @@ const jwt = __importStar(require("jsonwebtoken"));
 const SECRET_KEY = 'myverysecretkey';
 exports.jwtService = {
     createToken(user) {
-        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn: '1h' });
+        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn: '1m' });
     },
     getUserByToken(token) {
         token = token.replace('Bearer', '').trim();
         try {
             const verifiedToken = jwt.verify(token, SECRET_KEY);
-            if (verifiedToken && Date.now() <= verifiedToken.exp * 1000) {
+            if (verifiedToken) {
                 delete verifiedToken.exp;
                 delete verifiedToken.iat;
                 return verifiedToken;
