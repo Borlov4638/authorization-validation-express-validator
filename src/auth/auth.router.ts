@@ -43,7 +43,7 @@ authRouter.get('/me', (req:Request, res:Response) =>{
 
 })
 
-authRouter.post('/regisrtation',
+authRouter.post('/registration',
     usersLoginValidation(),
     usersEmailValidation(),
     usersPasswordValidation(),

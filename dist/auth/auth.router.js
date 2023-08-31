@@ -36,7 +36,7 @@ exports.authRouter.get('/me', (req, res) => {
     }
     return res.sendStatus(401);
 });
-exports.authRouter.post('/regisrtation', (0, users_validation_1.usersLoginValidation)(), (0, users_validation_1.usersEmailValidation)(), (0, users_validation_1.usersPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/registration', (0, users_validation_1.usersLoginValidation)(), (0, users_validation_1.usersEmailValidation)(), (0, users_validation_1.usersPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const subject = "Registration conformation ✔";
     const conformationCode = yield users_service_1.usersService.createNewUser(req.body.login, req.body.password, req.body.email, false);
     auth_service_1.authService.sendMail(req.body.email, conformationCode);
