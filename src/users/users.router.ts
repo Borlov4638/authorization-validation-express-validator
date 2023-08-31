@@ -3,7 +3,6 @@ import { RequestWithBody, RequestWithParam, RequestWithQuery } from "../types/bl
 import { client } from "../blogs/db/db.init";
 import { usersRepository } from "./users.repository";
 import * as bcript from "bcrypt"
-import { body } from "express-validator";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
 import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "./users.validation";
 import { ObjectId } from "mongodb";
@@ -28,10 +27,6 @@ usersRouter.get('/', authValidationMiddleware, async (req:RequestWithQuery<{sort
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10
 
     const itemsToSkip = (pageNumber - 1) * pageSize
-
-    //
-    //FIX FIMD METHOD
-    //
 
     const usersToSend = await client.db("incubator").collection("users")
         .find({ $or: [{login: {$regex: searchLoginTerm, $options: 'i'}},{email: {$regex: searchEmailTerm, $options: 'i' }}]},{projection:{_id:0, password:0}})

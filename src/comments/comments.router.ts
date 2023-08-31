@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Response, Router } from "express";
 import { RequestWithParam, RequestWithParamAndBody } from "../types/blogs.request.types";
 import { commentsContentValidation } from "./comments.validation";
 import { jwtService, jwtUser } from "../app/jwt.service";

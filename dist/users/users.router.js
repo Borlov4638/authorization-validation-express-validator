@@ -51,9 +51,6 @@ exports.usersRouter.get('/', auth_middleware_1.authValidationMiddleware, (req, r
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;
     const itemsToSkip = (pageNumber - 1) * pageSize;
-    //
-    //FIX FIMD METHOD
-    //
     const usersToSend = yield db_init_1.client.db("incubator").collection("users")
         .find({ $or: [{ login: { $regex: searchLoginTerm, $options: 'i' } }, { email: { $regex: searchEmailTerm, $options: 'i' } }] }, { projection: { _id: 0, password: 0 } })
         .sort(sotringQuery)

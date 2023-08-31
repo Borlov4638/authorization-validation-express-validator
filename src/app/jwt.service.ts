@@ -1,4 +1,3 @@
-import { WithId } from "mongodb"
 import { UserType } from "../types/users.type"
 import * as jwt from 'jsonwebtoken'
 

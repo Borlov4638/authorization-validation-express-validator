@@ -6,7 +6,6 @@ import { client } from "../../blogs/db/db.init";
 import { validationResultMiddleware } from "../../blogs/validation/blog.validatiom";
 import { ObjectId } from "mongodb";
 import { blogsRepository } from "../../blogs/repository/blogs.repository";
-import { body } from "express-validator";
 import { jwtService, jwtUser } from "../../app/jwt.service";
 import { postsRepository } from "../posts.repository";
 import { commentsContentValidation } from "../../comments/comments.validation";
