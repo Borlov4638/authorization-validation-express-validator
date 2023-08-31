@@ -31,11 +31,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authService = void 0;
 const db_init_1 = require("../blogs/db/db.init");
 const bcrypt = __importStar(require("bcrypt"));
 const nodemailer = __importStar(require("nodemailer"));
+const date_fns_1 = require("date-fns");
+const uuid4_1 = __importDefault(require("uuid4"));
 exports.authService = {
     checkCredentials(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -48,7 +53,7 @@ exports.authService = {
             }
         });
     },
-    sendMail(email, subject, message) {
+    sendMail(email, confirmationCode) {
         return __awaiter(this, void 0, void 0, function* () {
             const transporter = nodemailer.createTransport({
                 service: 'gmail',
@@ -60,10 +65,36 @@ exports.authService = {
             const info = yield transporter.sendMail({
                 from: 'Boris <borisincubator@gmail.com>',
                 to: email,
-                subject: subject,
-                html: message, // html body
+                subject: "Registration conformation ✔",
+                html: `<p>To finish registration please follow the link below:<a href='https://somesite.com/confirm-email?code=${confirmationCode}'>complete registration</a></p>`, // html body
             });
             console.log(info);
+        });
+    },
+    verifyUserByCode(code) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userToVerify = yield db_init_1.client.db('incubator').collection('users').findOne({ "emailConfirmation.confirmationCode": code });
+            if (userToVerify && userToVerify.emailConfirmation.confirmationCode == code && (0, date_fns_1.compareAsc)(userToVerify.emailConfirmation.expirationDate, new Date()) && userToVerify.emailConfirmation.isConfirmed === false) {
+                yield db_init_1.client.db('incubator').collection('users').updateOne(userToVerify, { $set: { 'emailConfirmation.isConfirmed': true } });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    },
+    resendEmailForRegistration(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userToVerify = yield db_init_1.client.db('incubator').collection('users').findOne({ email });
+            if (userToVerify && userToVerify.emailConfirmation.isConfirmed === false) {
+                const newConfirmationCode = (0, uuid4_1.default)();
+                yield db_init_1.client.db('incubator').collection('users').updateOne(userToVerify, { $set: { "emailConfirmation.confirmationCode": newConfirmationCode } });
+                yield this.sendMail(email, newConfirmationCode);
+                return true;
+            }
+            else {
+                return false;
+            }
         });
     }
 };

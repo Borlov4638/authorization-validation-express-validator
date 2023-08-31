@@ -2,6 +2,8 @@ import { ObjectId } from "mongodb"
 import { passwordService } from "../app/password.service"
 import { client } from "../blogs/db/db.init"
 import { usersRepository } from "./users.repository"
+import uuid4 from 'uuid4'
+import { add } from "date-fns"
 
 
 export const usersService = {
@@ -46,8 +48,8 @@ export const usersService = {
     
     },
 
-    async createNewUser(login:string, password:string, email:string){
-
+    async createNewUser(login:string, password:string, email:string, confirmed: boolean){
+        
         const usersPassword = await passwordService.hashPassword(password)
 
         const newUser = {
@@ -55,13 +57,23 @@ export const usersService = {
             login,
             password: usersPassword,
             email,
+            emailConfirmation:{
+                confirmationCode: uuid4(),
+                expirationDate: add(new Date(), {minutes:30}),
+                isConfirmed: confirmed
+            }
         }
 
         const insertedUser = await client.db('incubator').collection('users').insertOne(newUser)
         await client.db('incubator').collection('users').updateOne({_id:insertedUser.insertedId}, {$set:{id: insertedUser.insertedId}})
-        const userToReturn = await client.db('incubator').collection('users').findOne({_id: insertedUser.insertedId}, {projection:{_id:0, password:0}})
-
-        return userToReturn
+        const userToReturn = await client.db('incubator').collection('users').findOne({_id: insertedUser.insertedId}, {projection:{_id:0, password:0, emailConfirmation:0}})
+        
+        if(confirmed){
+            return userToReturn
+        }
+        else{
+            return newUser.emailConfirmation.confirmationCode
+        }
     },
 
     async deleteUser(userId:string){

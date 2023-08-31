@@ -21,7 +21,7 @@ exports.usersRouter.get('/', auth_middleware_1.authValidationMiddleware, (req, r
     res.status(200).send(usersList);
 }));
 exports.usersRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, users_validation_1.usersLoginValidation)(), (0, users_validation_1.usersEmailValidation)(), (0, users_validation_1.usersPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const createdUser = yield users_service_1.usersService.createNewUser(req.body.login, req.body.password, req.body.email);
+    const createdUser = yield users_service_1.usersService.createNewUser(req.body.login, req.body.password, req.body.email, true);
     res.status(201).send(createdUser);
 }));
 exports.usersRouter.delete('/:id', auth_middleware_1.authValidationMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
