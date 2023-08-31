@@ -35,6 +35,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authService = void 0;
 const db_init_1 = require("../blogs/db/db.init");
 const bcrypt = __importStar(require("bcrypt"));
+const nodemailer = __importStar(require("nodemailer"));
 exports.authService = {
     checkCredentials(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -45,6 +46,25 @@ exports.authService = {
             else {
                 return false;
             }
+        });
+    },
+    sendMail(email, subject, message) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: "borisincubator@gmail.com",
+                    pass: "fczspwlifurculqv",
+                },
+            });
+            //console.log('here')
+            const info = yield transporter.sendMail({
+                from: 'Boris <borisincubator@gmail.com>',
+                to: email,
+                subject: subject,
+                html: message, // html body
+            });
+            console.log(info);
         });
     }
 };

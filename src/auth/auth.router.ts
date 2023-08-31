@@ -5,6 +5,8 @@ import { authService } from "./auth.service";
 import { jwtService } from "../app/jwt.service";
 import { RequestWithBody } from "../types/blogs.request.types";
 import { JwtPayload } from "jsonwebtoken";
+import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "../users/users.validation";
+import * as nodemailer from 'nodemailer'
 
 
 export const authRouter = Router({})
@@ -38,4 +40,19 @@ authRouter.get('/me', (req:Request, res:Response) =>{
 
     return res.sendStatus(401)
 
+})
+
+authRouter.post('/regisrtation',
+    usersLoginValidation(),
+    usersEmailValidation(),
+    usersPasswordValidation(),
+    validationResultMiddleware,
+    async (req:RequestWithBody<{login:string, password:string, email:string}>, res: Response) =>{
+
+        const subject = "Registration conformation ✔"
+        const message = "<b>Confirm your registration</b>"
+    
+        authService.sendMail(req.body.email, subject, message)
+        
+        res.sendStatus(204)
 })
