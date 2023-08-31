@@ -27,7 +27,6 @@ export const authService = {
                 pass: "fczspwlifurculqv",
             },
         });
-        //console.log('here')
 
         const info = await transporter.sendMail({
             from: 'Boris <borisincubator@gmail.com>', // sender address

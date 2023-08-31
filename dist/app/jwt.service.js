@@ -28,7 +28,7 @@ const jwt = __importStar(require("jsonwebtoken"));
 const SECRET_KEY = 'myverysecretkey';
 exports.jwtService = {
     createToken(user) {
-        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn: '1m' });
+        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn: '1h' });
     },
     getUserByToken(token) {
         token = token.replace('Bearer', '').trim();

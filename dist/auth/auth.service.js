@@ -57,7 +57,6 @@ exports.authService = {
                     pass: "fczspwlifurculqv",
                 },
             });
-            //console.log('here')
             const info = yield transporter.sendMail({
                 from: 'Boris <borisincubator@gmail.com>',
                 to: email,

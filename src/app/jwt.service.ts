@@ -16,7 +16,7 @@ export const jwtService = {
 
     createToken(user: UserType){
 
-        return jwt.sign({userId:user.id, email:user.email, login:user.login}, SECRET_KEY,{expiresIn: '1m'})
+        return jwt.sign({userId:user.id, email:user.email, login:user.login}, SECRET_KEY,{expiresIn: '1h'})
     },
 
     getUserByToken(token: string): jwt.JwtPayload | null{

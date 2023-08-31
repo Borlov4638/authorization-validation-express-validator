@@ -6,7 +6,6 @@ import { jwtService } from "../app/jwt.service";
 import { RequestWithBody } from "../types/blogs.request.types";
 import { JwtPayload } from "jsonwebtoken";
 import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "../users/users.validation";
-import * as nodemailer from 'nodemailer'
 
 
 export const authRouter = Router({})
