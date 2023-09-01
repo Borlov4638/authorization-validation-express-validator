@@ -53,7 +53,7 @@ authRouter.post('/registration',
         const subject = "Registration conformation ✔"
         
         const conformationCode = await usersService.createNewUser(req.body.login, req.body.password, req.body.email, false) as string
-        authService.sendMail(req.body.email, conformationCode)
+        await authService.sendMail(req.body.email, conformationCode)
         
         res.sendStatus(204)
 })
