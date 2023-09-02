@@ -103,7 +103,7 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
         return res.status(400);
     }
 }));
-exports.authRouter.get('/logout', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/logout', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const oldRefreshToken = req.cookies.refreshToken;
     if (!oldRefreshToken || !jwt_service_1.jwtService.getUserByToken(oldRefreshToken)) {
         return res.sendStatus(401);

@@ -135,7 +135,7 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
 
 })
 
-authRouter.get('/logout', async (req:Request, res:Response) =>{
+authRouter.post('/logout', async (req:Request, res:Response) =>{
     const oldRefreshToken = req.cookies.refreshToken
 
     if (!oldRefreshToken || !jwtService.getUserByToken(oldRefreshToken)){
