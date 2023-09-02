@@ -35,7 +35,7 @@ exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidati
 exports.authRouter.get('/me', (req, res) => {
     if (req.headers.authorization) {
         const token = jwt_service_1.jwtService.getUserByToken(req.headers.authorization);
-        return token ? res.status(201).send(token) : res.sendStatus(401);
+        return token ? res.status(200).send(token) : res.sendStatus(401);
     }
     return res.sendStatus(401);
 });

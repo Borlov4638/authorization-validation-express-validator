@@ -37,7 +37,7 @@ exports.jwtService = {
             if (verifiedToken) {
                 delete verifiedToken.exp;
                 delete verifiedToken.iat;
-                delete verifiedToken.userId;
+                console.log(verifiedToken);
                 return verifiedToken;
             }
             else {

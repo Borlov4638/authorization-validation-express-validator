@@ -39,7 +39,7 @@ authRouter.get('/me', (req:Request, res:Response) =>{
     if(req.headers.authorization){
 
         const token : JwtPayload | null = jwtService.getUserByToken(req.headers.authorization)
-        return token ? res.status(201).send(token) : res.sendStatus(401) 
+        return token ? res.status(200).send(token) : res.sendStatus(401) 
     }
 
     return res.sendStatus(401)
