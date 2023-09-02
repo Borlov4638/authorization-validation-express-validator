@@ -5,10 +5,13 @@ import { client } from "./blogs/db/db.init"
 import { usersRouter } from "./users/users.router"
 import { authRouter } from "./auth/auth.router"
 import { commentsRouter } from "./comments/comments.router"
+import cookieParser from "cookie-parser"
 
 export const app = express()
 
 app.use(express.json())
+
+app.use(cookieParser()) 
 
 app.use('/blogs',blogsRouter)
 

@@ -22,8 +22,10 @@ exports.authRouter = (0, express_1.Router)({});
 exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidation)(), (0, auth_validation_1.authPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userIsValid = yield auth_service_1.authService.checkCredentials(req.body.loginOrEmail, req.body.password);
     if (userIsValid) {
-        const token = jwt_service_1.jwtService.createToken(userIsValid);
-        res.status(200).send({ accessToken: token });
+        const accessToken = jwt_service_1.jwtService.createToken(userIsValid, '10s');
+        const refreshToken = jwt_service_1.jwtService.createToken(userIsValid, '20s');
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+        res.status(200).send({ accessToken });
     }
     else {
         res.sendStatus(401);
@@ -74,3 +76,31 @@ exports.authRouter.post('/registration-email-resending', (0, express_validator_1
         });
     }
 }));
+exports.authRouter.post('/refresh-token', (req, res) => {
+    try {
+        if (!req.cookies.refreshToken) {
+            return res.sendStatus(401);
+        }
+        const token = jwt_service_1.jwtService.getUserByToken(req.cookies.refreshToken);
+        if (token) {
+            const accessToken = jwt_service_1.jwtService.createToken(token, '10s');
+            const refreshToken = jwt_service_1.jwtService.createToken(token, '20s');
+            res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+            return res.status(200).send({ accessToken });
+        }
+        else {
+            return res.sendStatus(401);
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(400);
+    }
+});
+exports.authRouter.get('/logout', (req, res) => {
+    const oldRefreshToken = req.cookies.refreshToken;
+    if (!oldRefreshToken || !jwt_service_1.jwtService.getUserByToken(oldRefreshToken)) {
+        return res.sendStatus(401);
+    }
+    return res.clearCookie("refreshToken").sendStatus(204);
+});

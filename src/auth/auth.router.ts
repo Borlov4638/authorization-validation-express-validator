@@ -8,6 +8,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "../users/users.validation";
 import { usersService } from "../users/users.service";
 import { body } from "express-validator";
+import { UserType } from "../types/users.type";
 
 
 export const authRouter = Router({})
@@ -22,8 +23,10 @@ authRouter.post('/login',
 
         if(userIsValid){
 
-            const token = jwtService.createToken(userIsValid)
-            res.status(200).send({accessToken:token})
+            const accessToken = jwtService.createToken(userIsValid, '10s')
+            const refreshToken = jwtService.createToken(userIsValid, '20s')
+            res.cookie('refreshToken', refreshToken, {httpOnly:true, secure:true})
+            res.status(200).send({accessToken})
         }
         else{
             res.sendStatus(401)
@@ -96,4 +99,40 @@ authRouter.post('/registration-email-resending',
                 ]
               })
         }
+})
+
+
+authRouter.post('/refresh-token', (req:RequestWithBody<{accessToken:string}>, res:Response) =>{
+    try{
+        if(!req.cookies.refreshToken){
+            return res.sendStatus(401)
+        }
+
+        const token = jwtService.getUserByToken(req.cookies.refreshToken) as UserType
+
+        if(token){
+
+            const accessToken = jwtService.createToken(token, '10s')
+            const refreshToken = jwtService.createToken(token, '20s')
+            res.cookie('refreshToken', refreshToken, {httpOnly:true, secure:true})
+            return res.status(200).send({accessToken})
+        }
+        else{
+            return res.sendStatus(401) 
+        }
+    }
+    catch(err){
+        console.log(err)
+        return res.status(400)
+    }
+
+})
+
+authRouter.get('/logout', (req:Request, res:Response) =>{
+    const oldRefreshToken = req.cookies.refreshToken
+
+    if (!oldRefreshToken || !jwtService.getUserByToken(oldRefreshToken)){
+        return 	res.sendStatus(401)
+    }
+    return res.clearCookie("refreshToken").sendStatus(204)
 })
