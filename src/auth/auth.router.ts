@@ -111,7 +111,6 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
         const isTokenInvalid = await client.db('incubator').collection('invalidTokens').findOne({refreshToken:req.cookies.refreshToken})
 
         if(isTokenInvalid){
-            console.log('asdasd')
             return res.sendStatus(401)
             
         }
@@ -151,5 +150,5 @@ authRouter.get('/logout', async (req:Request, res:Response) =>{
 
     await client.db('incubator').collection('invalidTokens').insertOne({refreshToken: oldRefreshToken})
 
-    return res.clearCookie("refreshToken").sendStatus(204)
+    return res.sendStatus(204)
 })

@@ -84,7 +84,6 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
         }
         const isTokenInvalid = yield db_init_1.client.db('incubator').collection('invalidTokens').findOne({ refreshToken: req.cookies.refreshToken });
         if (isTokenInvalid) {
-            console.log('asdasd');
             return res.sendStatus(401);
         }
         const token = jwt_service_1.jwtService.getUserByToken(req.cookies.refreshToken);
@@ -114,5 +113,5 @@ exports.authRouter.get('/logout', (req, res) => __awaiter(void 0, void 0, void 0
         return res.sendStatus(401);
     }
     yield db_init_1.client.db('incubator').collection('invalidTokens').insertOne({ refreshToken: oldRefreshToken });
-    return res.clearCookie("refreshToken").sendStatus(204);
+    return res.sendStatus(204);
 }));
