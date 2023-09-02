@@ -14,7 +14,7 @@ export interface jwtUser{
 
 export const jwtService = {
 
-    createToken(user: UserType, expireTime:string){
+    createToken(user: UserType | jwt.JwtPayload, expireTime:string){
 
         return jwt.sign({userId:user.id, email:user.email, login:user.login}, SECRET_KEY,{expiresIn: expireTime})
     },

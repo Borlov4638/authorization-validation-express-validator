@@ -88,6 +88,7 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
         }
         const token = jwt_service_1.jwtService.getUserByToken(req.cookies.refreshToken);
         if (token) {
+            token.id = token.userId;
             yield db_init_1.client.db('incubator').collection('invalidTokens').insertOne({ refreshToken: req.cookies.refreshToken });
             const accessToken = jwt_service_1.jwtService.createToken(token, '10s');
             const refreshToken = jwt_service_1.jwtService.createToken(token, '20s');

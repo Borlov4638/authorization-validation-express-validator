@@ -115,9 +115,10 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
             
         }
 
-        const token = jwtService.getUserByToken(req.cookies.refreshToken) as UserType
+        const token = jwtService.getUserByToken(req.cookies.refreshToken)
 
         if(token){
+            token.id = token.userId
             await client.db('incubator').collection('invalidTokens').insertOne({refreshToken: req.cookies.refreshToken})
             const accessToken = jwtService.createToken(token, '10s')
             const refreshToken = jwtService.createToken(token, '20s')
