@@ -27,6 +27,7 @@ export const jwtService = {
             if(verifiedToken){
                 delete verifiedToken.exp
                 delete verifiedToken.iat
+                delete verifiedToken.userId
                 return verifiedToken 
     
             } else{

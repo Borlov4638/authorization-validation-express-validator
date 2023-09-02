@@ -9,6 +9,7 @@ import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } f
 import { usersService } from "../users/users.service";
 import { body } from "express-validator";
 import { UserType } from "../types/users.type";
+import { client } from "../blogs/db/db.init";
 
 
 export const authRouter = Router({})
@@ -38,7 +39,6 @@ authRouter.get('/me', (req:Request, res:Response) =>{
     if(req.headers.authorization){
 
         const token : JwtPayload | null = jwtService.getUserByToken(req.headers.authorization)
-        
         return token ? res.status(201).send(token) : res.sendStatus(401) 
     }
 
@@ -102,16 +102,24 @@ authRouter.post('/registration-email-resending',
 })
 
 
-authRouter.post('/refresh-token', (req:RequestWithBody<{accessToken:string}>, res:Response) =>{
+authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string}>, res:Response) =>{
     try{
         if(!req.cookies.refreshToken){
             return res.sendStatus(401)
         }
 
+        const isTokenInvalid = await client.db('incubator').collection('invalidTokens').findOne({refreshToken:req.cookies.refreshToken})
+
+        if(isTokenInvalid){
+            console.log('asdasd')
+            return res.sendStatus(401)
+            
+        }
+
         const token = jwtService.getUserByToken(req.cookies.refreshToken) as UserType
 
         if(token){
-
+            await client.db('incubator').collection('invalidTokens').insertOne({refreshToken: req.cookies.refreshToken})
             const accessToken = jwtService.createToken(token, '10s')
             const refreshToken = jwtService.createToken(token, '20s')
             res.cookie('refreshToken', refreshToken, {httpOnly:true, secure:true})
@@ -128,11 +136,20 @@ authRouter.post('/refresh-token', (req:RequestWithBody<{accessToken:string}>, re
 
 })
 
-authRouter.get('/logout', (req:Request, res:Response) =>{
+authRouter.get('/logout', async (req:Request, res:Response) =>{
     const oldRefreshToken = req.cookies.refreshToken
 
     if (!oldRefreshToken || !jwtService.getUserByToken(oldRefreshToken)){
         return 	res.sendStatus(401)
     }
+
+    const isTokenInvalid = await client.db('incubator').collection('invalidTokens').findOne({refreshToken:oldRefreshToken})
+
+    if(isTokenInvalid){
+        return res.sendStatus(401)
+    }
+
+    await client.db('incubator').collection('invalidTokens').insertOne({refreshToken: oldRefreshToken})
+
     return res.clearCookie("refreshToken").sendStatus(204)
 })

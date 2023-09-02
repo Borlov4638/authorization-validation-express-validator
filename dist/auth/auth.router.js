@@ -18,6 +18,7 @@ const jwt_service_1 = require("../app/jwt.service");
 const users_validation_1 = require("../users/users.validation");
 const users_service_1 = require("../users/users.service");
 const express_validator_1 = require("express-validator");
+const db_init_1 = require("../blogs/db/db.init");
 exports.authRouter = (0, express_1.Router)({});
 exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidation)(), (0, auth_validation_1.authPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userIsValid = yield auth_service_1.authService.checkCredentials(req.body.loginOrEmail, req.body.password);
@@ -76,13 +77,19 @@ exports.authRouter.post('/registration-email-resending', (0, express_validator_1
         });
     }
 }));
-exports.authRouter.post('/refresh-token', (req, res) => {
+exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.cookies.refreshToken) {
             return res.sendStatus(401);
         }
+        const isTokenInvalid = yield db_init_1.client.db('incubator').collection('invalidTokens').findOne({ refreshToken: req.cookies.refreshToken });
+        if (isTokenInvalid) {
+            console.log('asdasd');
+            return res.sendStatus(401);
+        }
         const token = jwt_service_1.jwtService.getUserByToken(req.cookies.refreshToken);
         if (token) {
+            yield db_init_1.client.db('incubator').collection('invalidTokens').insertOne({ refreshToken: req.cookies.refreshToken });
             const accessToken = jwt_service_1.jwtService.createToken(token, '10s');
             const refreshToken = jwt_service_1.jwtService.createToken(token, '20s');
             res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
@@ -96,11 +103,16 @@ exports.authRouter.post('/refresh-token', (req, res) => {
         console.log(err);
         return res.status(400);
     }
-});
-exports.authRouter.get('/logout', (req, res) => {
+}));
+exports.authRouter.get('/logout', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const oldRefreshToken = req.cookies.refreshToken;
     if (!oldRefreshToken || !jwt_service_1.jwtService.getUserByToken(oldRefreshToken)) {
         return res.sendStatus(401);
     }
+    const isTokenInvalid = yield db_init_1.client.db('incubator').collection('invalidTokens').findOne({ refreshToken: oldRefreshToken });
+    if (isTokenInvalid) {
+        return res.sendStatus(401);
+    }
+    yield db_init_1.client.db('incubator').collection('invalidTokens').insertOne({ refreshToken: oldRefreshToken });
     return res.clearCookie("refreshToken").sendStatus(204);
-});
+}));
