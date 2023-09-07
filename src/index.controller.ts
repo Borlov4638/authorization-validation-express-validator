@@ -7,12 +7,15 @@ import { authRouter } from "./auth/auth.router"
 import { commentsRouter } from "./comments/comments.router"
 import cookieParser from "cookie-parser"
 import { secDevRouter } from "./securityDevices/security-dev.router"
+import { customRateLimit } from "./app/custom-rate-limit"
 
 export const app = express()
 
 app.use(express.json())
 
 app.use(cookieParser()) 
+
+app.use(customRateLimit)
 
 app.use('/blogs',blogsRouter)
 
