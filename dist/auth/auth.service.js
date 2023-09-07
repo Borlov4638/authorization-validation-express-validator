@@ -106,7 +106,6 @@ exports.authService = {
     },
     isSessionValid(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(token);
             console.log((0, date_fns_1.format)(new Date(token.iat * 1000), 'yyyy-MM-dd-hh-mm-ss'));
             return yield db_init_1.client.db('incubator').collection('deviceSessions').findOne({ userId: new mongodb_1.ObjectId(token.userId), lastActiveDate: (0, date_fns_1.format)(new Date(token.iat * 1000), 'yyyy-MM-dd-hh-mm-ss') });
         });

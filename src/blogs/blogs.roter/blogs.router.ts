@@ -95,7 +95,6 @@ blogsRouter.put('/:id',
         const requestId = new ObjectId(`${req.params.id}`)
         const findBlogToUpdate = await client.db("incubator").collection("blogs").find({_id: requestId}).toArray()
 
-        console.log(findBlogToUpdate)
 
         if(findBlogToUpdate.length < 1){
             return res.sendStatus(404)

@@ -30,8 +30,8 @@ authRouter.post('/login',
             const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105'
 
             const deviceId = uuid4()
-            const refreshTokenExpirationDate = 20
-            const accessToken = jwtService.createAccessToken(userIsValid, 10)
+            const refreshTokenExpirationDate = 3600
+            const accessToken = jwtService.createAccessToken(userIsValid, 360)
             const refreshToken = jwtService.createRefreshToken(userIsValid, deviceId, refreshTokenExpirationDate)
 
             await authService.createNewSession(userIsValid.id, requestIp, userAgent, deviceId, refreshTokenExpirationDate)
@@ -124,15 +124,14 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
 
             const isSessionValid = await authService.isSessionValid(token)
 
-            console.log(isSessionValid)
             if(!isSessionValid){
                 return res.sendStatus(401)
             }
 
             token.id = token.userId
             
-            const accessToken = jwtService.createAccessToken(token, 10)
-            const refreshToken = jwtService.createRefreshToken(token, token.deviceId, 20)
+            const accessToken = jwtService.createAccessToken(token, 360)
+            const refreshToken = jwtService.createRefreshToken(token, token.deviceId, 3600)
             
             const requestIp = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress! 
             const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105'
@@ -175,8 +174,6 @@ authRouter.post('/logout', async (req:Request, res:Response) =>{
     if(!isSessionValid){
         return res.sendStatus(401)
     }
-
-    console.log(isSessionValid)
 
     await client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid)
 

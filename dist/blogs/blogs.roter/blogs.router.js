@@ -68,7 +68,6 @@ exports.blogsRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, bl
 exports.blogsRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const requestId = new mongodb_1.ObjectId(`${req.params.id}`);
     const findBlogToUpdate = yield db_init_1.client.db("incubator").collection("blogs").find({ _id: requestId }).toArray();
-    console.log(findBlogToUpdate);
     if (findBlogToUpdate.length < 1) {
         return res.sendStatus(404);
     }

@@ -31,8 +31,8 @@ exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidati
         const requestIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
         const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105';
         const deviceId = (0, uuid4_1.default)();
-        const refreshTokenExpirationDate = 20;
-        const accessToken = jwt_service_1.jwtService.createAccessToken(userIsValid, 10);
+        const refreshTokenExpirationDate = 3600;
+        const accessToken = jwt_service_1.jwtService.createAccessToken(userIsValid, 360);
         const refreshToken = jwt_service_1.jwtService.createRefreshToken(userIsValid, deviceId, refreshTokenExpirationDate);
         yield auth_service_1.authService.createNewSession(userIsValid.id, requestIp, userAgent, deviceId, refreshTokenExpirationDate);
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
@@ -95,13 +95,12 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
         const token = jwt_service_1.jwtService.getAllTokenData(req.cookies.refreshToken);
         if (token) {
             const isSessionValid = yield auth_service_1.authService.isSessionValid(token);
-            console.log(isSessionValid);
             if (!isSessionValid) {
                 return res.sendStatus(401);
             }
             token.id = token.userId;
-            const accessToken = jwt_service_1.jwtService.createAccessToken(token, 10);
-            const refreshToken = jwt_service_1.jwtService.createRefreshToken(token, token.deviceId, 20);
+            const accessToken = jwt_service_1.jwtService.createAccessToken(token, 360);
+            const refreshToken = jwt_service_1.jwtService.createRefreshToken(token, token.deviceId, 3600);
             const requestIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
             const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105';
             const refreshTokenExpirationDate = 20;
@@ -130,7 +129,6 @@ exports.authRouter.post('/logout', (req, res) => __awaiter(void 0, void 0, void 
     if (!isSessionValid) {
         return res.sendStatus(401);
     }
-    console.log(isSessionValid);
     yield db_init_1.client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid);
     return res.sendStatus(204);
 }));

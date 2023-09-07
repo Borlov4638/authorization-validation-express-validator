@@ -82,7 +82,6 @@ export const authService = {
     },
 
     async isSessionValid(token: JwtPayload){
-        console.log(token)
         console.log(format( new Date(token.iat! * 1000), 'yyyy-MM-dd-hh-mm-ss'))
         return await client.db('incubator').collection('deviceSessions').findOne({userId:new ObjectId(token.userId), lastActiveDate:format(new Date(token.iat! * 1000), 'yyyy-MM-dd-hh-mm-ss')})
     }
