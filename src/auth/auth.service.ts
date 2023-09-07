@@ -2,8 +2,10 @@ import { client } from "../blogs/db/db.init"
 import * as bcrypt from "bcrypt"
 import { UserType } from "../types/users.type"
 import * as nodemailer from 'nodemailer'
-import { compareAsc } from "date-fns"
+import { add, compareAsc, format } from "date-fns"
 import uuid4 from "uuid4"
+import { ObjectId, WithId } from "mongodb"
+import { JwtPayload } from "jsonwebtoken"
 
 
 export const authService = {
@@ -69,5 +71,21 @@ export const authService = {
         else{
             return false
         }
+    },
+
+    async createNewSession(userId:ObjectId, ip:string, title:string, deviceId:string, expDate: number): Promise<void>{
+
+        const refreshTokenExpirationDate = add(new Date(), {seconds:expDate}).toISOString()
+
+        await client.db('incubator').collection('deviceSessions').insertOne({userId, ip, title, lastActiveDate: format(new Date(), 'yyyy-MM-dd-hh-mm-ss'), deviceId, expiration:refreshTokenExpirationDate})
+
+    },
+
+    async isSessionValid(token: JwtPayload){
+        console.log(token)
+        console.log(format( new Date(token.iat! * 1000), 'yyyy-MM-dd-hh-mm-ss'))
+        return await client.db('incubator').collection('deviceSessions').findOne({userId:new ObjectId(token.userId), lastActiveDate:format(new Date(token.iat! * 1000), 'yyyy-MM-dd-hh-mm-ss')})
     }
+
+
 }

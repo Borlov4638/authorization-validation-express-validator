@@ -21,6 +21,7 @@ const users_router_1 = require("./users/users.router");
 const auth_router_1 = require("./auth/auth.router");
 const comments_router_1 = require("./comments/comments.router");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const security_dev_router_1 = require("./securityDevices/security-dev.router");
 exports.app = (0, express_1.default)();
 exports.app.use(express_1.default.json());
 exports.app.use((0, cookie_parser_1.default)());
@@ -29,6 +30,7 @@ exports.app.use('/posts', posts_router_1.postRouter);
 exports.app.use('/users', users_router_1.usersRouter);
 exports.app.use('/auth', auth_router_1.authRouter);
 exports.app.use('/comments', comments_router_1.commentsRouter);
+exports.app.use('/security', security_dev_router_1.secDevRouter);
 exports.app.delete('/testing/all-data', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield db_init_1.client.db("incubator").collection("blogs").deleteMany({});
     yield db_init_1.client.db("incubator").collection("posts").deleteMany({});

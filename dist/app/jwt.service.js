@@ -27,8 +27,13 @@ exports.jwtService = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
 const SECRET_KEY = 'myverysecretkey';
 exports.jwtService = {
-    createToken(user, expireTime) {
-        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn: expireTime });
+    createAccessToken(user, expireTime) {
+        const expiresIn = expireTime.toString() + 's';
+        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn });
+    },
+    createRefreshToken(user, deviceId, expireTime) {
+        const expiresIn = expireTime.toString() + 's';
+        return jwt.sign({ userId: user.id, email: user.email, login: user.login, deviceId }, SECRET_KEY, { expiresIn });
     },
     getUserByToken(token) {
         token = token.replace('Bearer', '').trim();
@@ -37,7 +42,21 @@ exports.jwtService = {
             if (verifiedToken) {
                 delete verifiedToken.exp;
                 delete verifiedToken.iat;
-                console.log(verifiedToken);
+                return verifiedToken;
+            }
+            else {
+                return null;
+            }
+        }
+        catch (err) {
+            return null;
+        }
+    },
+    getAllTokenData(token) {
+        token = token.replace('Bearer', '').trim();
+        try {
+            const verifiedToken = jwt.verify(token, SECRET_KEY);
+            if (verifiedToken) {
                 return verifiedToken;
             }
             else {

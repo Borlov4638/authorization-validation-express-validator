@@ -14,9 +14,18 @@ export interface jwtUser{
 
 export const jwtService = {
 
-    createToken(user: UserType | jwt.JwtPayload, expireTime:string){
+    createAccessToken(user: UserType | jwt.JwtPayload, expireTime:number){
 
-        return jwt.sign({userId:user.id, email:user.email, login:user.login}, SECRET_KEY,{expiresIn: expireTime})
+        const expiresIn = expireTime.toString() + 's'
+
+        return jwt.sign({userId:user.id, email:user.email, login:user.login}, SECRET_KEY,{expiresIn})
+    },
+
+    createRefreshToken(user: UserType | jwt.JwtPayload, deviceId:string, expireTime:number){
+
+        const expiresIn = expireTime.toString() + 's'
+
+        return jwt.sign({userId:user.id, email:user.email, login:user.login, deviceId}, SECRET_KEY,{expiresIn})
     },
 
     getUserByToken(token: string): jwt.JwtPayload | null{
@@ -27,7 +36,23 @@ export const jwtService = {
             if(verifiedToken){
                 delete verifiedToken.exp
                 delete verifiedToken.iat
-                console.log(verifiedToken)
+                return verifiedToken 
+    
+            } else{
+                 return null
+                }
+        }
+        catch(err){
+            return null
+        } 
+    },
+
+    getAllTokenData(token: string): jwt.JwtPayload | null{
+        token = token.replace('Bearer', '').trim()
+        try{
+            const verifiedToken = jwt.verify(token, SECRET_KEY) as jwt.JwtPayload
+
+            if(verifiedToken){
                 return verifiedToken 
     
             } else{

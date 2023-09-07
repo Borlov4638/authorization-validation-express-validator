@@ -9,6 +9,8 @@ import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } f
 import { usersService } from "../users/users.service";
 import { body } from "express-validator";
 import { client } from "../blogs/db/db.init";
+import uuid4 from "uuid4";
+import { add, format } from "date-fns";
 
 
 export const authRouter = Router({})
@@ -23,8 +25,17 @@ authRouter.post('/login',
 
         if(userIsValid){
 
-            const accessToken = jwtService.createToken(userIsValid, '10s')
-            const refreshToken = jwtService.createToken(userIsValid, '20s')
+            const requestIp = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress! 
+
+            const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105'
+
+            const deviceId = uuid4()
+            const refreshTokenExpirationDate = 20
+            const accessToken = jwtService.createAccessToken(userIsValid, 10)
+            const refreshToken = jwtService.createRefreshToken(userIsValid, deviceId, refreshTokenExpirationDate)
+
+            await authService.createNewSession(userIsValid.id, requestIp, userAgent, deviceId, refreshTokenExpirationDate)
+
             res.cookie('refreshToken', refreshToken, {httpOnly:true, secure:true})
             res.status(200).send({accessToken})
         }
@@ -107,20 +118,32 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
             return res.sendStatus(401)
         }
 
-        const isTokenInvalid = await client.db('incubator').collection('invalidTokens').findOne({refreshToken:req.cookies.refreshToken})
-
-        if(isTokenInvalid){
-            return res.sendStatus(401)
-            
-        }
-
-        const token = jwtService.getUserByToken(req.cookies.refreshToken)
+        const token = jwtService.getAllTokenData(req.cookies.refreshToken)
 
         if(token){
+
+            const isSessionValid = await authService.isSessionValid(token)
+
+            console.log(isSessionValid)
+            if(!isSessionValid){
+                return res.sendStatus(401)
+            }
+
             token.id = token.userId
-            await client.db('incubator').collection('invalidTokens').insertOne({refreshToken: req.cookies.refreshToken})
-            const accessToken = jwtService.createToken(token, '10s')
-            const refreshToken = jwtService.createToken(token, '20s')
+            
+            const accessToken = jwtService.createAccessToken(token, 10)
+            const refreshToken = jwtService.createRefreshToken(token, token.deviceId, 20)
+            
+            const requestIp = req.headers['x-forwarded-for'] as string || req.socket.remoteAddress! 
+            const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105'
+
+            const refreshTokenExpirationDate = 20
+
+
+            await client.db('incubator').collection('deviceSessions').findOneAndUpdate(
+                {deviceId:isSessionValid.deviceId}, {$set:{...isSessionValid, ip:requestIp, title:userAgent,lastActiveDate: format(new Date(), 'yyyy-MM-dd-hh-mm-ss'), expiration: add(new Date(), {seconds:refreshTokenExpirationDate}).toISOString()  }}
+            )
+
             res.cookie('refreshToken', refreshToken, {httpOnly:true, secure:true})
             return res.status(200).send({accessToken})
         }
@@ -136,19 +159,26 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
 })
 
 authRouter.post('/logout', async (req:Request, res:Response) =>{
-    const oldRefreshToken = req.cookies.refreshToken
 
-    if (!oldRefreshToken || !jwtService.getUserByToken(oldRefreshToken)){
+    if(!req.cookies.refreshToken){
         return 	res.sendStatus(401)
     }
 
-    const isTokenInvalid = await client.db('incubator').collection('invalidTokens').findOne({refreshToken:oldRefreshToken})
+    const token = jwtService.getAllTokenData(req.cookies.refreshToken)
 
-    if(isTokenInvalid){
+    if (!token){
+        return 	res.sendStatus(401)
+    }
+
+    const isSessionValid = await authService.isSessionValid(token)
+
+    if(!isSessionValid){
         return res.sendStatus(401)
     }
 
-    await client.db('incubator').collection('invalidTokens').insertOne({refreshToken: oldRefreshToken})
+    console.log(isSessionValid)
+
+    await client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid)
 
     return res.sendStatus(204)
 })

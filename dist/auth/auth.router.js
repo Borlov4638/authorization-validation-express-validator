@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authRouter = void 0;
 const express_1 = require("express");
@@ -19,12 +22,19 @@ const users_validation_1 = require("../users/users.validation");
 const users_service_1 = require("../users/users.service");
 const express_validator_1 = require("express-validator");
 const db_init_1 = require("../blogs/db/db.init");
+const uuid4_1 = __importDefault(require("uuid4"));
+const date_fns_1 = require("date-fns");
 exports.authRouter = (0, express_1.Router)({});
 exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidation)(), (0, auth_validation_1.authPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userIsValid = yield auth_service_1.authService.checkCredentials(req.body.loginOrEmail, req.body.password);
     if (userIsValid) {
-        const accessToken = jwt_service_1.jwtService.createToken(userIsValid, '10s');
-        const refreshToken = jwt_service_1.jwtService.createToken(userIsValid, '20s');
+        const requestIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105';
+        const deviceId = (0, uuid4_1.default)();
+        const refreshTokenExpirationDate = 20;
+        const accessToken = jwt_service_1.jwtService.createAccessToken(userIsValid, 10);
+        const refreshToken = jwt_service_1.jwtService.createRefreshToken(userIsValid, deviceId, refreshTokenExpirationDate);
+        yield auth_service_1.authService.createNewSession(userIsValid.id, requestIp, userAgent, deviceId, refreshTokenExpirationDate);
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
         res.status(200).send({ accessToken });
     }
@@ -82,16 +92,20 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
         if (!req.cookies.refreshToken) {
             return res.sendStatus(401);
         }
-        const isTokenInvalid = yield db_init_1.client.db('incubator').collection('invalidTokens').findOne({ refreshToken: req.cookies.refreshToken });
-        if (isTokenInvalid) {
-            return res.sendStatus(401);
-        }
-        const token = jwt_service_1.jwtService.getUserByToken(req.cookies.refreshToken);
+        const token = jwt_service_1.jwtService.getAllTokenData(req.cookies.refreshToken);
         if (token) {
+            const isSessionValid = yield auth_service_1.authService.isSessionValid(token);
+            console.log(isSessionValid);
+            if (!isSessionValid) {
+                return res.sendStatus(401);
+            }
             token.id = token.userId;
-            yield db_init_1.client.db('incubator').collection('invalidTokens').insertOne({ refreshToken: req.cookies.refreshToken });
-            const accessToken = jwt_service_1.jwtService.createToken(token, '10s');
-            const refreshToken = jwt_service_1.jwtService.createToken(token, '20s');
+            const accessToken = jwt_service_1.jwtService.createAccessToken(token, 10);
+            const refreshToken = jwt_service_1.jwtService.createRefreshToken(token, token.deviceId, 20);
+            const requestIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105';
+            const refreshTokenExpirationDate = 20;
+            yield db_init_1.client.db('incubator').collection('deviceSessions').findOneAndUpdate({ deviceId: isSessionValid.deviceId }, { $set: Object.assign(Object.assign({}, isSessionValid), { ip: requestIp, title: userAgent, lastActiveDate: (0, date_fns_1.format)(new Date(), 'yyyy-MM-dd-hh-mm-ss'), expiration: (0, date_fns_1.add)(new Date(), { seconds: refreshTokenExpirationDate }).toISOString() }) });
             res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
             return res.status(200).send({ accessToken });
         }
@@ -105,14 +119,18 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
     }
 }));
 exports.authRouter.post('/logout', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const oldRefreshToken = req.cookies.refreshToken;
-    if (!oldRefreshToken || !jwt_service_1.jwtService.getUserByToken(oldRefreshToken)) {
+    if (!req.cookies.refreshToken) {
         return res.sendStatus(401);
     }
-    const isTokenInvalid = yield db_init_1.client.db('incubator').collection('invalidTokens').findOne({ refreshToken: oldRefreshToken });
-    if (isTokenInvalid) {
+    const token = jwt_service_1.jwtService.getAllTokenData(req.cookies.refreshToken);
+    if (!token) {
         return res.sendStatus(401);
     }
-    yield db_init_1.client.db('incubator').collection('invalidTokens').insertOne({ refreshToken: oldRefreshToken });
+    const isSessionValid = yield auth_service_1.authService.isSessionValid(token);
+    if (!isSessionValid) {
+        return res.sendStatus(401);
+    }
+    console.log(isSessionValid);
+    yield db_init_1.client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid);
     return res.sendStatus(204);
 }));
