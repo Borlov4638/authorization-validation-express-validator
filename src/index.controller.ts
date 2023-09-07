@@ -31,3 +31,8 @@ app.delete('/testing/all-data', async (req:Request, res:Response) =>{
     await client.db('incubator').collection('invalidTokens').deleteMany({})
     res.sendStatus(204)
 })
+
+app.delete('/testing/blogs', async (req:Request, res:Response) =>{
+    await client.db("incubator").collection("blogs").deleteMany({})
+    res.sendStatus(204)
+})

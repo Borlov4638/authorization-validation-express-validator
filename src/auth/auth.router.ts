@@ -8,7 +8,6 @@ import { JwtPayload } from "jsonwebtoken";
 import { usersEmailValidation, usersLoginValidation, usersPasswordValidation } from "../users/users.validation";
 import { usersService } from "../users/users.service";
 import { body } from "express-validator";
-import { UserType } from "../types/users.type";
 import { client } from "../blogs/db/db.init";
 
 

@@ -37,3 +37,7 @@ exports.app.delete('/testing/all-data', (req, res) => __awaiter(void 0, void 0, 
     yield db_init_1.client.db('incubator').collection('invalidTokens').deleteMany({});
     res.sendStatus(204);
 }));
+exports.app.delete('/testing/blogs', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield db_init_1.client.db("incubator").collection("blogs").deleteMany({});
+    res.sendStatus(204);
+}));

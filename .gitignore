@@ -1,2 +1,4 @@
 node_modules
 creds
+__tests__
+jest.config.js
