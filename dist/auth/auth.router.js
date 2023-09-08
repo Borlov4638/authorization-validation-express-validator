@@ -104,7 +104,8 @@ exports.authRouter.post('/refresh-token', (req, res) => __awaiter(void 0, void 0
             const requestIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
             const userAgent = (req.headers["user-agent"]) ? req.headers["user-agent"] : 'Chrome 105';
             const refreshTokenExpirationDate = 20;
-            yield db_init_1.client.db('incubator').collection('deviceSessions').findOneAndUpdate({ deviceId: isSessionValid.deviceId }, { $set: Object.assign(Object.assign({}, isSessionValid), { ip: requestIp, title: userAgent, lastActiveDate: (0, date_fns_1.format)(new Date(), 'yyyy-MM-dd-hh-mm-ss'), expiration: (0, date_fns_1.add)(new Date(), { seconds: refreshTokenExpirationDate }).toISOString() }) });
+            const lastActiveDate = Math.floor(+new Date() / 1000) * 1000;
+            yield db_init_1.client.db('incubator').collection('deviceSessions').findOneAndUpdate({ deviceId: isSessionValid.deviceId }, { $set: Object.assign(Object.assign({}, isSessionValid), { ip: requestIp, title: userAgent, lastActiveDate: new Date(lastActiveDate).toISOString(), expiration: (0, date_fns_1.add)(new Date(), { seconds: refreshTokenExpirationDate }).toISOString() }) });
             res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
             return res.status(200).send({ accessToken });
         }

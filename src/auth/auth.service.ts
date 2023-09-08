@@ -77,13 +77,16 @@ export const authService = {
 
         const refreshTokenExpirationDate = add(new Date(), {seconds:expDate}).toISOString()
 
-        await client.db('incubator').collection('deviceSessions').insertOne({userId, ip, title, lastActiveDate: format(new Date(), 'yyyy-MM-dd-hh-mm-ss'), deviceId, expiration:refreshTokenExpirationDate})
+        const lastActiveDate = Math.floor(+new Date()/1000) * 1000
+
+        console.log(new Date(lastActiveDate).toISOString())
+        await client.db('incubator').collection('deviceSessions').insertOne({userId, ip, title, lastActiveDate: new Date(lastActiveDate).toISOString(), deviceId, expiration:refreshTokenExpirationDate})
 
     },
 
     async isSessionValid(token: JwtPayload){
-        console.log(format( new Date(token.iat! * 1000), 'yyyy-MM-dd-hh-mm-ss'))
-        return await client.db('incubator').collection('deviceSessions').findOne({userId:new ObjectId(token.userId), lastActiveDate:format(new Date(token.iat! * 1000), 'yyyy-MM-dd-hh-mm-ss')})
+        console.log(new Date(token.iat! * 1000).toISOString())
+        return await client.db('incubator').collection('deviceSessions').findOne({userId:new ObjectId(token.userId), lastActiveDate:new Date(token.iat! * 1000).toISOString()})
     }
 
 

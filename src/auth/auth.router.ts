@@ -138,9 +138,9 @@ authRouter.post('/refresh-token', async (req:RequestWithBody<{accessToken:string
 
             const refreshTokenExpirationDate = 20
 
-
+            const lastActiveDate = Math.floor(+new Date()/1000) * 1000
             await client.db('incubator').collection('deviceSessions').findOneAndUpdate(
-                {deviceId:isSessionValid.deviceId}, {$set:{...isSessionValid, ip:requestIp, title:userAgent,lastActiveDate: format(new Date(), 'yyyy-MM-dd-hh-mm-ss'), expiration: add(new Date(), {seconds:refreshTokenExpirationDate}).toISOString()  }}
+                {deviceId:isSessionValid.deviceId}, {$set:{...isSessionValid, ip:requestIp, title:userAgent,lastActiveDate: new Date(lastActiveDate).toISOString(), expiration: add(new Date(), {seconds:refreshTokenExpirationDate}).toISOString()  }}
             )
 
             res.cookie('refreshToken', refreshToken, {httpOnly:true, secure:true})

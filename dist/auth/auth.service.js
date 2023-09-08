@@ -101,13 +101,15 @@ exports.authService = {
     createNewSession(userId, ip, title, deviceId, expDate) {
         return __awaiter(this, void 0, void 0, function* () {
             const refreshTokenExpirationDate = (0, date_fns_1.add)(new Date(), { seconds: expDate }).toISOString();
-            yield db_init_1.client.db('incubator').collection('deviceSessions').insertOne({ userId, ip, title, lastActiveDate: (0, date_fns_1.format)(new Date(), 'yyyy-MM-dd-hh-mm-ss'), deviceId, expiration: refreshTokenExpirationDate });
+            const lastActiveDate = Math.floor(+new Date() / 1000) * 1000;
+            console.log(new Date(lastActiveDate).toISOString());
+            yield db_init_1.client.db('incubator').collection('deviceSessions').insertOne({ userId, ip, title, lastActiveDate: new Date(lastActiveDate).toISOString(), deviceId, expiration: refreshTokenExpirationDate });
         });
     },
     isSessionValid(token) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log((0, date_fns_1.format)(new Date(token.iat * 1000), 'yyyy-MM-dd-hh-mm-ss'));
-            return yield db_init_1.client.db('incubator').collection('deviceSessions').findOne({ userId: new mongodb_1.ObjectId(token.userId), lastActiveDate: (0, date_fns_1.format)(new Date(token.iat * 1000), 'yyyy-MM-dd-hh-mm-ss') });
+            console.log(new Date(token.iat * 1000).toISOString());
+            return yield db_init_1.client.db('incubator').collection('deviceSessions').findOne({ userId: new mongodb_1.ObjectId(token.userId), lastActiveDate: new Date(token.iat * 1000).toISOString() });
         });
     }
 };
