@@ -1,17 +1,17 @@
-import { BlogType } from "../../types/blogs.type";
+import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 
-export const blogsDB : BlogType[] = [
-    {
-        id: '0',
 
-        name: 'name',
 
-        description:'description',
-
-        websiteUrl:'some Url',
-
-        createdAt: "2023-08-21T03:13:53.439Z",
-        
-        isMembership: true
-    }
-]
+const blogsScheme = new mongoose.Schema({
+    name: {type: String, required: true},
+    createdAt:{type: String, required: true},
+    description:{type: String, required: true},
+    id:{type: ObjectId},
+    isMembership: Boolean,
+    websiteUrl: {type: String, required: true}
+  })
+  
+  
+  export const BlogsModel = mongoose.model('blogs', blogsScheme)
+  

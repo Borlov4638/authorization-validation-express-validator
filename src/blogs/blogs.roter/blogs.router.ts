@@ -6,6 +6,7 @@ import { client } from "../db/db.init";
 import { ObjectId } from "mongodb";
 import { blogsRepository } from "../repository/blogs.repository";
 import { postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
+import { BlogsModel } from "../db/blogs.db";
 
 export const blogsRouter : Router = Router({})
 
@@ -25,7 +26,11 @@ blogsRouter.get('/', async (req:RequestWithQuery<{searchNameTerm:string, sortBy:
 
     const itemsToSkip = (pageNumber - 1) * pageSize
 
-    const blogsToSend = await client.db("incubator").collection("blogs").find({ name: {$regex: searchNameTerm, $options:'i'}},{projection:{_id:0}})
+    //const blogsToShow = await BlogsModel.find({})
+
+    
+
+    const blogsToSend = await client.db("incubator").collection("blogs").find({ name: {$regex: searchNameTerm, $options:'i'}},{projection:{_id:0, __v:0}})
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
@@ -48,7 +53,7 @@ blogsRouter.get('/:id', async (req:RequestWithParam<{id:string}>, res:Response) 
 
     const requestId = new ObjectId(`${req.params.id}`)
 
-    const findedBlog = await client.db("incubator").collection("blogs").findOne({_id: requestId}, {projection:{_id:0}})
+    const findedBlog = await BlogsModel.find({_id: requestId}).select({_id:0, __v:0})
 
     if (findedBlog){
         res.status(200).send(findedBlog)
@@ -76,9 +81,10 @@ blogsRouter.post('/',
             isMembership: false
         }
 
-        const insertedPost = await client.db("incubator").collection("blogs").insertOne(newBlog)
-        await client.db("incubator").collection("blogs").updateOne({_id:insertedPost.insertedId}, {$set:{id:insertedPost.insertedId}})
-        const blogToShow = await client.db("incubator").collection("blogs").findOne({_id:insertedPost.insertedId}, {projection:{_id:0}})
+        const insertedPost = await BlogsModel.create(newBlog)
+        await BlogsModel.updateOne({_id:insertedPost._id}, {id:insertedPost._id})
+        const blogToShow = await BlogsModel.find({_id:insertedPost._id}).select({_id:0, __v:0})
+        
         return res.status(201).send(blogToShow)
 })
 
@@ -100,7 +106,7 @@ blogsRouter.put('/:id',
             return res.sendStatus(404)
         }
 
-        await client.db("incubator").collection("blogs").updateOne({_id: requestId}, {$set:{websiteUrl:req.body.websiteUrl ,name:req.body.name, description: req.body.description}})
+        await BlogsModel.updateOne({_id: requestId}, {websiteUrl:req.body.websiteUrl ,name:req.body.name, description: req.body.description})
         
         return res.sendStatus(204)
 })
@@ -111,7 +117,7 @@ blogsRouter.delete('/:id',
 
     const requestId = new ObjectId(`${req.params.id}`)
 
-    const deleted = await client.db("incubator").collection("blogs").deleteOne({_id: requestId})
+    const deleted = await BlogsModel.deleteOne({_id: requestId})
 
     if(deleted.deletedCount < 1){
         return res.sendStatus(404)
