@@ -23,7 +23,7 @@ export const customRateLimit = (async (req:Request, res:Response, next:NextFunct
 
     const passwordRecoweryCount = reqCount.filter(req => req.URL === "/auth/password-recovery")
 
-    if(loginCount.length > 5 || registrationConfirmationCount.length > 5|| registrationCount.length > 5 || registrationEmailResCount.length > 5|| newPasswordCount.length >5, passwordRecoweryCount.length > 5){
+    if(loginCount.length > 5 || registrationConfirmationCount.length > 5|| registrationCount.length > 5 || registrationEmailResCount.length > 5|| newPasswordCount.length >5 || passwordRecoweryCount.length > 5){
         return res.sendStatus(429)
     }
 

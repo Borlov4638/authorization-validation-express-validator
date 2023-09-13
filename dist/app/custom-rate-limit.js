@@ -22,7 +22,7 @@ exports.customRateLimit = ((req, res, next) => __awaiter(void 0, void 0, void 0,
     const registrationEmailResCount = reqCount.filter(req => req.URL === "/auth/registration-email-resending");
     const newPasswordCount = reqCount.filter(req => req.URL === "/auth/new-password");
     const passwordRecoweryCount = reqCount.filter(req => req.URL === "/auth/password-recovery");
-    if (loginCount.length > 5 || registrationConfirmationCount.length > 5 || registrationCount.length > 5 || registrationEmailResCount.length > 5 || newPasswordCount.length > 5, passwordRecoweryCount.length > 5) {
+    if (loginCount.length > 5 || registrationConfirmationCount.length > 5 || registrationCount.length > 5 || registrationEmailResCount.length > 5 || newPasswordCount.length > 5 || passwordRecoweryCount.length > 5) {
         return res.sendStatus(429);
     }
     console.log(reqCount.length);
