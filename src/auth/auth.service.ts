@@ -42,6 +42,27 @@ export const authService = {
         console.log(info)
     },
 
+    async sendPassRecoweryMail(email:string, recoveryCode:string){
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: "borisincubator@gmail.com",
+                pass: "fczspwlifurculqv",
+            },
+        });
+
+        const info = await transporter.sendMail({
+            from: 'Boris <borisincubator@gmail.com>', // sender address
+            to: email, // list of receivers
+            subject: "Registration conformation ✔", // Subject line
+            html: `<p>To finish registration please follow the link below:<a href='https://somesite.com/password-recovery?recoveryCode=${recoveryCode}'>complete registration</a></p>`, // html body
+        });
+        console.log(info)
+    },
+
+
+
     async verifyUserByCode(code:string){
         
         const userToVerify = await client.db('incubator').collection('users').findOne({"emailConfirmation.confirmationCode": code})
@@ -82,7 +103,7 @@ export const authService = {
         }
         const code = jwtService.createPasswordRecoweryToken(userToVerify, 3600)
 
-        await this.sendMail(email, code)
+        await this.sendPassRecoweryMail(email, code)
         return true
     },
 

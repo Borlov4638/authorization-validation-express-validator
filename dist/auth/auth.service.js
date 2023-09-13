@@ -73,6 +73,24 @@ exports.authService = {
             console.log(info);
         });
     },
+    sendPassRecoweryMail(email, recoveryCode) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: "borisincubator@gmail.com",
+                    pass: "fczspwlifurculqv",
+                },
+            });
+            const info = yield transporter.sendMail({
+                from: 'Boris <borisincubator@gmail.com>',
+                to: email,
+                subject: "Registration conformation ✔",
+                html: `<p>To finish registration please follow the link below:<a href='https://somesite.com/password-recovery?recoveryCode=${recoveryCode}'>complete registration</a></p>`, // html body
+            });
+            console.log(info);
+        });
+    },
     verifyUserByCode(code) {
         return __awaiter(this, void 0, void 0, function* () {
             const userToVerify = yield db_init_1.client.db('incubator').collection('users').findOne({ "emailConfirmation.confirmationCode": code });
@@ -106,7 +124,7 @@ exports.authService = {
                 return true;
             }
             const code = jwt_service_1.jwtService.createPasswordRecoweryToken(userToVerify, 3600);
-            yield this.sendMail(email, code);
+            yield this.sendPassRecoweryMail(email, code);
             return true;
         });
     },
