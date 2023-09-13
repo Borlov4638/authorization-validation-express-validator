@@ -66,5 +66,9 @@ exports.jwtService = {
         catch (err) {
             return null;
         }
+    },
+    createPasswordRecoweryToken(user, expireTime) {
+        const expiresIn = expireTime.toString() + 's';
+        return jwt.sign({ userId: user.id, email: user.email, login: user.login }, SECRET_KEY, { expiresIn });
     }
 };

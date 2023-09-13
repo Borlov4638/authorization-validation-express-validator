@@ -42,6 +42,7 @@ const nodemailer = __importStar(require("nodemailer"));
 const date_fns_1 = require("date-fns");
 const uuid4_1 = __importDefault(require("uuid4"));
 const mongodb_1 = require("mongodb");
+const jwt_service_1 = require("../app/jwt.service");
 exports.authService = {
     checkCredentials(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -96,6 +97,17 @@ exports.authService = {
             else {
                 return false;
             }
+        });
+    },
+    sendPasswordRecoweryEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userToVerify = yield db_init_1.client.db('incubator').collection('users').findOne({ email });
+            if (!userToVerify) {
+                return true;
+            }
+            const code = jwt_service_1.jwtService.createPasswordRecoweryToken(userToVerify, 3600);
+            yield this.sendMail(email, code);
+            return true;
         });
     },
     createNewSession(userId, ip, title, deviceId, expDate) {

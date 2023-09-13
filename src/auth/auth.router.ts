@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { authLoginOrEmailValidation, authPasswordValidation } from "./auth.validation";
+import { authLoginOrEmailValidation, authNewPasswordValidation, authPasswordValidation, authRecoveryCodeValidation } from "./auth.validation";
 import { validationResultMiddleware } from "../blogs/validation/blog.validatiom";
 import { authService } from "./auth.service";
 import { jwtService } from "../app/jwt.service";
@@ -11,6 +11,8 @@ import { body } from "express-validator";
 import { client } from "../blogs/db/db.init";
 import uuid4 from "uuid4";
 import { add, format } from "date-fns";
+import { passwordService } from "../app/password.service";
+import { ObjectId } from "mongodb";
 
 
 export const authRouter = Router({})
@@ -178,4 +180,42 @@ authRouter.post('/logout', async (req:Request, res:Response) =>{
     await client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid)
 
     return res.sendStatus(204)
+})
+
+authRouter.post('/passoword-recovery',
+    body('email').exists().withMessage({message:"invalid email", field: "email"}).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({message:"invalid email", field: "email"}),
+    validationResultMiddleware,
+    async (req:RequestWithBody<{email:string}>, res:Response) =>{
+
+        const emailIsResend = await authService.sendPasswordRecoweryEmail(req.body.email)
+
+        if(emailIsResend){
+            return res.sendStatus(204)
+        }
+        else{
+            return res.status(400).send({
+                "errorsMessages": [
+                  {
+                    "message": "email is invalid",
+                    "field": "email"
+                  }
+                ]
+              })
+        }
+
+})
+
+authRouter.post('/new-password',
+    authNewPasswordValidation(),
+    authRecoveryCodeValidation(),
+    validationResultMiddleware,
+    async (req:RequestWithBody<{newPassword:string, recoveryCode:string}>, res:Response) =>{
+        
+        const isCodeValid = jwtService.getAllTokenData(req.body.recoveryCode)
+
+        const hashedPassword = await passwordService.hashPassword(req.body.newPassword)
+
+        await client.db('incubator').collection('users').updateOne({_id:new ObjectId(isCodeValid!.userId)}, {$set:{password:hashedPassword}})
+        console.log(isCodeValid!.userId)
+        return res.sendStatus(204)
 })

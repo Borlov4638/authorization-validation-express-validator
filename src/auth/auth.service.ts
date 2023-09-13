@@ -6,6 +6,7 @@ import { add, compareAsc, format } from "date-fns"
 import uuid4 from "uuid4"
 import { ObjectId, WithId } from "mongodb"
 import { JwtPayload } from "jsonwebtoken"
+import { jwtService } from "../app/jwt.service"
 
 
 export const authService = {
@@ -56,7 +57,7 @@ export const authService = {
         }
     },
 
-    async resendEmailForRegistration(email:string, ){
+    async resendEmailForRegistration(email:string){
 
         const userToVerify = await client.db('incubator').collection('users').findOne({email})
 
@@ -71,6 +72,18 @@ export const authService = {
         else{
             return false
         }
+    },
+
+    async sendPasswordRecoweryEmail(email:string){
+        const userToVerify = await client.db('incubator').collection('users').findOne({email})
+
+        if(!userToVerify){
+            return true
+        }
+        const code = jwtService.createPasswordRecoweryToken(userToVerify, 3600)
+
+        await this.sendMail(email, code)
+        return true
     },
 
     async createNewSession(userId:ObjectId, ip:string, title:string, deviceId:string, expDate: number): Promise<void>{

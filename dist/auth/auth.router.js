@@ -24,6 +24,8 @@ const express_validator_1 = require("express-validator");
 const db_init_1 = require("../blogs/db/db.init");
 const uuid4_1 = __importDefault(require("uuid4"));
 const date_fns_1 = require("date-fns");
+const password_service_1 = require("../app/password.service");
+const mongodb_1 = require("mongodb");
 exports.authRouter = (0, express_1.Router)({});
 exports.authRouter.post('/login', (0, auth_validation_1.authLoginOrEmailValidation)(), (0, auth_validation_1.authPasswordValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userIsValid = yield auth_service_1.authService.checkCredentials(req.body.loginOrEmail, req.body.password);
@@ -131,5 +133,28 @@ exports.authRouter.post('/logout', (req, res) => __awaiter(void 0, void 0, void 
         return res.sendStatus(401);
     }
     yield db_init_1.client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid);
+    return res.sendStatus(204);
+}));
+exports.authRouter.post('/passoword-recovery', (0, express_validator_1.body)('email').exists().withMessage({ message: "invalid email", field: "email" }).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({ message: "invalid email", field: "email" }), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const emailIsResend = yield auth_service_1.authService.sendPasswordRecoweryEmail(req.body.email);
+    if (emailIsResend) {
+        return res.sendStatus(204);
+    }
+    else {
+        return res.status(400).send({
+            "errorsMessages": [
+                {
+                    "message": "email is invalid",
+                    "field": "email"
+                }
+            ]
+        });
+    }
+}));
+exports.authRouter.post('/new-password', (0, auth_validation_1.authNewPasswordValidation)(), (0, auth_validation_1.authRecoveryCodeValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const isCodeValid = jwt_service_1.jwtService.getAllTokenData(req.body.recoveryCode);
+    const hashedPassword = yield password_service_1.passwordService.hashPassword(req.body.newPassword);
+    yield db_init_1.client.db('incubator').collection('users').updateOne({ _id: new mongodb_1.ObjectId(isCodeValid.userId) }, { $set: { password: hashedPassword } });
+    console.log(isCodeValid.userId);
     return res.sendStatus(204);
 }));
