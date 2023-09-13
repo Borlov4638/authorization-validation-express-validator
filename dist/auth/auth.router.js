@@ -135,7 +135,7 @@ exports.authRouter.post('/logout', (req, res) => __awaiter(void 0, void 0, void 
     yield db_init_1.client.db('incubator').collection('deviceSessions').deleteOne(isSessionValid);
     return res.sendStatus(204);
 }));
-exports.authRouter.post('/passoword-recovery', (0, express_validator_1.body)('email').exists().withMessage({ message: "invalid email", field: "email" }).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({ message: "invalid email", field: "email" }), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/password-recovery', (0, express_validator_1.body)('email').exists().withMessage({ message: "invalid email", field: "email" }).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({ message: "invalid email", field: "email" }), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const emailIsResend = yield auth_service_1.authService.sendPasswordRecoweryEmail(req.body.email);
     if (emailIsResend) {
         return res.sendStatus(204);

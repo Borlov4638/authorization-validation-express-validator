@@ -182,7 +182,7 @@ authRouter.post('/logout', async (req:Request, res:Response) =>{
     return res.sendStatus(204)
 })
 
-authRouter.post('/passoword-recovery',
+authRouter.post('/password-recovery',
     body('email').exists().withMessage({message:"invalid email", field: "email"}).isString().matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage({message:"invalid email", field: "email"}),
     validationResultMiddleware,
     async (req:RequestWithBody<{email:string}>, res:Response) =>{
