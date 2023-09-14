@@ -82,7 +82,7 @@ blogsRouter.post('/',
             isMembership: false
         })
 
-        const createdBlog = blogsDbRepo.createNewBlog(newBlog)
+        const createdBlog = await blogsDbRepo.createNewBlog(newBlog)
 
         if(!createdBlog) return res.sendStatus(500)
         

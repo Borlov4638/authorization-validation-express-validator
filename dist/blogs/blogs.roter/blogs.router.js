@@ -64,7 +64,7 @@ exports.blogsRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, bl
         createdAt: (new Date()).toISOString(),
         isMembership: false
     });
-    const createdBlog = blogs_db_1.blogsDbRepo.createNewBlog(newBlog);
+    const createdBlog = yield blogs_db_1.blogsDbRepo.createNewBlog(newBlog);
     if (!createdBlog)
         return res.sendStatus(500);
     return res.status(201).send(createdBlog);
