@@ -6,6 +6,8 @@ import { client } from "../db/db.init";
 import { ObjectId } from "mongodb";
 import { blogsRepository } from "../repository/blogs.repository";
 import { postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
+import { BlogsModel, blogsDbRepo } from "../db/blogs.db";
+import { BlogType } from "../../types/blogs.type";
 
 export const blogsRouter : Router = Router({})
 
@@ -66,20 +68,25 @@ blogsRouter.post('/',
     validationResultMiddleware,
     
     async (req: RequestWithBody<{name:string, description:string, websiteUrl:string}>, res:Response) =>{
-    
-        const newBlog = 
+        
+        const BlogId = new ObjectId() 
+
+        const newBlog = (
         {
+            _id: BlogId,
+            id: BlogId,
             name: req.body.name,
             description: req.body.description,
             websiteUrl: req.body.websiteUrl,
             createdAt: (new Date()).toISOString(),
             isMembership: false
-        }
+        })
 
-        const insertedPost = await client.db("incubator").collection("blogs").insertOne(newBlog)
-        await client.db("incubator").collection("blogs").updateOne({_id:insertedPost.insertedId}, {$set:{id:insertedPost.insertedId}})
-        const blogToShow = await client.db("incubator").collection("blogs").findOne({_id:insertedPost.insertedId}, {projection:{_id:0}})
-        return res.status(201).send(blogToShow)
+        const createdBlog = blogsDbRepo.createNewBlog(newBlog)
+
+        if(!createdBlog) return res.sendStatus(500)
+        
+        return res.status(201).send(createdBlog)
 })
 
 blogsRouter.put('/:id',
