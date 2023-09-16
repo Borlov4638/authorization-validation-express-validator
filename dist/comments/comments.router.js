@@ -17,6 +17,7 @@ const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
 const db_init_1 = require("../blogs/db/db.init");
 const mongodb_1 = require("mongodb");
 const auth_middleware_1 = require("../auth/auth.middleware");
+const comments_service_1 = require("./comments.service");
 exports.commentsRouter = (0, express_1.Router)({});
 exports.commentsRouter.put('/:commentId', auth_middleware_1.bearerAuthorization, (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const isAuthorized = jwt_service_1.jwtService.getUserByToken(req.headers.authorization);
@@ -53,5 +54,22 @@ exports.commentsRouter.delete('/:commentId', (req, res) => __awaiter(void 0, voi
         return res.sendStatus(403);
     }
     yield db_init_1.client.db('incubator').collection('comments').deleteOne(commentToDelete);
+    return res.sendStatus(204);
+}));
+exports.commentsRouter.put('/:commentId/like-status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.headers.authorization) {
+        return res.sendStatus(401);
+    }
+    const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
+    if (!user) {
+        return res.sendStatus(401);
+    }
+    const commentToLike = yield db_init_1.client.db('incubator').collection('comments').findOne({ _id: new mongodb_1.ObjectId(req.params.commentId) });
+    if (!commentToLike) {
+        return res.sendStatus(404);
+    }
+    console.log(comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus));
+    const updatedLikeCount = comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus);
+    yield db_init_1.client.db("incubator").collection("comments").updateOne({ _id: commentToLike._id }, { $set: { likesInfo: updatedLikeCount.likesInfo } });
     return res.sendStatus(204);
 }));

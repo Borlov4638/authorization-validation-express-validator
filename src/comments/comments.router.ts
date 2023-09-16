@@ -6,6 +6,10 @@ import { validationResultMiddleware } from "../blogs/validation/blog.validatiom"
 import { client } from "../blogs/db/db.init";
 import { ObjectId } from "mongodb";
 import { bearerAuthorization } from "../auth/auth.middleware";
+import { LikeStatus } from "../app/like-status.enum";
+import { commentService } from "./comments.service";
+import { UserType } from "../types/users.type";
+import { CommentType } from "../types/comments.type";
 
 
 export const commentsRouter = Router({})
@@ -73,4 +77,30 @@ commentsRouter.delete('/:commentId',
 
         await client.db('incubator').collection('comments').deleteOne(commentToDelete)
         return res.sendStatus(204)
+})
+
+commentsRouter.put('/:commentId/like-status', async (req:RequestWithParamAndBody<{commentId:string}, {likeStatus: LikeStatus}>, res:Response) =>{
+
+    if(!req.headers.authorization){
+        return res.sendStatus(401)
+    }
+    const user = jwtService.getAllTokenData(req.headers.authorization)
+
+    if(!user){
+        return  res.sendStatus(401);
+    }
+
+    const commentToLike = await client.db('incubator').collection('comments').findOne({_id: new ObjectId(req.params.commentId)})
+
+    if(!commentToLike){
+        return res.sendStatus(404)
+    }
+
+    console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
+
+    const updatedLikeCount = commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus)
+
+    await client.db("incubator").collection("comments").updateOne({_id: commentToLike._id}, {$set:{likesInfo:updatedLikeCount.likesInfo}})
+
+    return res.sendStatus(204)
 })

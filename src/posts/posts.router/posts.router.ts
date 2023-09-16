@@ -161,12 +161,16 @@ postRouter.post('/:postId/comments',
                 userLogin: userInfo.login
             },
             createdAt: new Date().toISOString(),
-            postId:postToComment._id
+            postId:postToComment._id,
+            likesInfo:{
+                usersWhoLiked:[],
+                usersWhoDisliked: []
+            }
         }
 
         const insertedComment = await client.db('incubator').collection('comments').insertOne(newComment)
         await client.db('incubator').collection('comments').updateOne({_id: insertedComment.insertedId}, {$set:{id: insertedComment.insertedId}})
-        const commentToShow = await client.db('incubator').collection('comments').findOne({_id:insertedComment.insertedId}, {projection:{_id:0, postId:0}})
+        const commentToShow = await client.db('incubator').collection('comments').findOne({_id:insertedComment.insertedId}, {projection:{_id:0, postId:0, likesInfo:0}})
         return res.status(201).send(commentToShow)
 
 })

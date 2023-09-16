@@ -108,11 +108,15 @@ exports.postRouter.post('/:postId/comments', auth_middleware_1.bearerAuthorizati
             userLogin: userInfo.login
         },
         createdAt: new Date().toISOString(),
-        postId: postToComment._id
+        postId: postToComment._id,
+        likesInfo: {
+            usersWhoLiked: [],
+            usersWhoDisliked: []
+        }
     };
     const insertedComment = yield db_init_1.client.db('incubator').collection('comments').insertOne(newComment);
     yield db_init_1.client.db('incubator').collection('comments').updateOne({ _id: insertedComment.insertedId }, { $set: { id: insertedComment.insertedId } });
-    const commentToShow = yield db_init_1.client.db('incubator').collection('comments').findOne({ _id: insertedComment.insertedId }, { projection: { _id: 0, postId: 0 } });
+    const commentToShow = yield db_init_1.client.db('incubator').collection('comments').findOne({ _id: insertedComment.insertedId }, { projection: { _id: 0, postId: 0, likesInfo: 0 } });
     return res.status(201).send(commentToShow);
 }));
 exports.postRouter.get('/:postId/comments', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
