@@ -55,4 +55,19 @@ export const commentsRepository = {
         }
     },
 
+    getLikeStatus(commentToLike:CommentType, user: jwtUser){
+
+        const isDislikesIndex = commentToLike.likesInfo.usersWhoDisliked.indexOf(user.userId)
+        const isLikesIndex = commentToLike.likesInfo.usersWhoLiked.indexOf(user.userId)
+
+        if(isDislikesIndex !== -1){
+            return LikeStatus.Dislike
+        }else if(isLikesIndex !== -1){
+            return LikeStatus.Like
+        }else{
+            return LikeStatus.None            
+        }
+        
+    }
+
 }

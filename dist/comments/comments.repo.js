@@ -48,4 +48,17 @@ exports.commentsRepository = {
                 return commentToLike;
         }
     },
+    getLikeStatus(commentToLike, user) {
+        const isDislikesIndex = commentToLike.likesInfo.usersWhoDisliked.indexOf(user.userId);
+        const isLikesIndex = commentToLike.likesInfo.usersWhoLiked.indexOf(user.userId);
+        if (isDislikesIndex !== -1) {
+            return like_status_enum_1.LikeStatus.Dislike;
+        }
+        else if (isLikesIndex !== -1) {
+            return like_status_enum_1.LikeStatus.Like;
+        }
+        else {
+            return like_status_enum_1.LikeStatus.None;
+        }
+    }
 };

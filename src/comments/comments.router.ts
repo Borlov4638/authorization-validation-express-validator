@@ -41,12 +41,12 @@ commentsRouter.put('/:commentId',
 commentsRouter.get('/:commentId',
     async (req:RequestWithParam<{commentId:string}>, res:Response) =>{
         
-        const commentToShow = await client.db('incubator').collection('comments').findOne({_id: new ObjectId(req.params.commentId)}, {projection:{_id:0, postId:0}})
+        const commentToShow = await commentService.getCommentById(req.params.commentId, req.headers.authorization) 
 
         if(!commentToShow){
             return res.sendStatus(404)
         }
-
+        
         return res.status(200).send(commentToShow)
 })
 
@@ -95,6 +95,8 @@ commentsRouter.put('/:commentId/like-status', async (req:RequestWithParamAndBody
     if(!commentToLike){
         return res.sendStatus(404)
     }
+    
+    //TODO Добавить проверку того что лайк статус в запросе есть в энуме
 
     console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
 

@@ -32,7 +32,7 @@ exports.commentsRouter.put('/:commentId', auth_middleware_1.bearerAuthorization,
     return res.sendStatus(204);
 }));
 exports.commentsRouter.get('/:commentId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const commentToShow = yield db_init_1.client.db('incubator').collection('comments').findOne({ _id: new mongodb_1.ObjectId(req.params.commentId) }, { projection: { _id: 0, postId: 0 } });
+    const commentToShow = yield comments_service_1.commentService.getCommentById(req.params.commentId, req.headers.authorization);
     if (!commentToShow) {
         return res.sendStatus(404);
     }
@@ -68,6 +68,7 @@ exports.commentsRouter.put('/:commentId/like-status', (req, res) => __awaiter(vo
     if (!commentToLike) {
         return res.sendStatus(404);
     }
+    //TODO Добавить проверку того что лайк статус в запросе есть в энуме
     console.log(comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus));
     const updatedLikeCount = comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus);
     yield db_init_1.client.db("incubator").collection("comments").updateOne({ _id: commentToLike._id }, { $set: { likesInfo: updatedLikeCount.likesInfo } });
