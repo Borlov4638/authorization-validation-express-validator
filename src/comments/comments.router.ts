@@ -8,7 +8,6 @@ import { ObjectId } from "mongodb";
 import { bearerAuthorization } from "../auth/auth.middleware";
 import { LikeStatus } from "../app/like-status.enum";
 import { commentService } from "./comments.service";
-import { UserType } from "../types/users.type";
 import { CommentType } from "../types/comments.type";
 
 
@@ -95,8 +94,14 @@ commentsRouter.put('/:commentId/like-status', async (req:RequestWithParamAndBody
     if(!commentToLike){
         return res.sendStatus(404)
     }
-    
-    //TODO Добавить проверку того что лайк статус в запросе есть в энуме
+    //
+    //TODO проверить по документации, что должно возврашаться в этом случае
+    //
+    const likeStatuses = Object.values(LikeStatus)
+
+    if(!likeStatuses.includes(req.body.likeStatus)){
+        return res.sendStatus(400)
+    }
 
     console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
 

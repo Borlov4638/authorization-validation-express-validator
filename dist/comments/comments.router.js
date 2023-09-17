@@ -17,6 +17,7 @@ const blog_validatiom_1 = require("../blogs/validation/blog.validatiom");
 const db_init_1 = require("../blogs/db/db.init");
 const mongodb_1 = require("mongodb");
 const auth_middleware_1 = require("../auth/auth.middleware");
+const like_status_enum_1 = require("../app/like-status.enum");
 const comments_service_1 = require("./comments.service");
 exports.commentsRouter = (0, express_1.Router)({});
 exports.commentsRouter.put('/:commentId', auth_middleware_1.bearerAuthorization, (0, comments_validation_1.commentsContentValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -68,7 +69,13 @@ exports.commentsRouter.put('/:commentId/like-status', (req, res) => __awaiter(vo
     if (!commentToLike) {
         return res.sendStatus(404);
     }
-    //TODO Добавить проверку того что лайк статус в запросе есть в энуме
+    //
+    //TODO проверить по документации, что должно возврашаться в этом случае
+    //
+    const likeStatuses = Object.values(like_status_enum_1.LikeStatus);
+    if (!likeStatuses.includes(req.body.likeStatus)) {
+        return res.sendStatus(400);
+    }
     console.log(comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus));
     const updatedLikeCount = comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus);
     yield db_init_1.client.db("incubator").collection("comments").updateOne({ _id: commentToLike._id }, { $set: { likesInfo: updatedLikeCount.likesInfo } });
