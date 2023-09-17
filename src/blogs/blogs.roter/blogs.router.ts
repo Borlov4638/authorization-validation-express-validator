@@ -6,8 +6,7 @@ import { client } from "../db/db.init";
 import { ObjectId } from "mongodb";
 import { blogsRepository } from "../repository/blogs.repository";
 import { postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
-import { BlogsModel, blogsDbRepo } from "../db/blogs.db";
-import { BlogType } from "../../types/blogs.type";
+import { blogsDbRepo } from "../db/blogs.db";
 
 export const blogsRouter : Router = Router({})
 
