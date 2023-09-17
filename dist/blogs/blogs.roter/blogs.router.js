@@ -17,7 +17,6 @@ const db_init_1 = require("../db/db.init");
 const mongodb_1 = require("mongodb");
 const blogs_repository_1 = require("../repository/blogs.repository");
 const posts_validartion_1 = require("../../posts/valodation/posts.validartion");
-const blogs_db_1 = require("../db/blogs.db");
 exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : '';
@@ -54,20 +53,17 @@ exports.blogsRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, 
     }
 }));
 exports.blogsRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const BlogId = new mongodb_1.ObjectId();
-    const newBlog = ({
-        _id: BlogId,
-        id: BlogId,
+    const newBlog = {
         name: req.body.name,
         description: req.body.description,
         websiteUrl: req.body.websiteUrl,
         createdAt: (new Date()).toISOString(),
         isMembership: false
-    });
-    const createdBlog = yield blogs_db_1.blogsDbRepo.createNewBlog(newBlog);
-    if (!createdBlog)
-        return res.sendStatus(500);
-    return res.status(201).send(createdBlog);
+    };
+    const insertedPost = yield db_init_1.client.db("incubator").collection("blogs").insertOne(newBlog);
+    yield db_init_1.client.db("incubator").collection("blogs").updateOne({ _id: insertedPost.insertedId }, { $set: { id: insertedPost.insertedId } });
+    const blogToShow = yield db_init_1.client.db("incubator").collection("blogs").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0 } });
+    return res.status(201).send(blogToShow);
 }));
 exports.blogsRouter.put('/:id', auth_middleware_1.authValidationMiddleware, (0, blog_validatiom_1.blogNameValidation)(), (0, blog_validatiom_1.blogDescriptionValidation)(), (0, blog_validatiom_1.blogUrlValidation)(), (0, blog_validatiom_1.blogUrlMatchingValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const requestId = new mongodb_1.ObjectId(`${req.params.id}`);

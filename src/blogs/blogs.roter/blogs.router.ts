@@ -67,25 +67,20 @@ blogsRouter.post('/',
     validationResultMiddleware,
     
     async (req: RequestWithBody<{name:string, description:string, websiteUrl:string}>, res:Response) =>{
-        
-        const BlogId = new ObjectId() 
-
-        const newBlog = (
+    
+        const newBlog = 
         {
-            _id: BlogId,
-            id: BlogId,
             name: req.body.name,
             description: req.body.description,
             websiteUrl: req.body.websiteUrl,
             createdAt: (new Date()).toISOString(),
             isMembership: false
-        })
+        }
 
-        const createdBlog = await blogsDbRepo.createNewBlog(newBlog)
-
-        if(!createdBlog) return res.sendStatus(500)
-        
-        return res.status(201).send(createdBlog)
+        const insertedPost = await client.db("incubator").collection("blogs").insertOne(newBlog)
+        await client.db("incubator").collection("blogs").updateOne({_id:insertedPost.insertedId}, {$set:{id:insertedPost.insertedId}})
+        const blogToShow = await client.db("incubator").collection("blogs").findOne({_id:insertedPost.insertedId}, {projection:{_id:0}})
+        return res.status(201).send(blogToShow)
 })
 
 blogsRouter.put('/:id',
