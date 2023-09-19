@@ -18,6 +18,8 @@ const mongodb_1 = require("mongodb");
 const blogs_repository_1 = require("../repository/blogs.repository");
 const posts_validartion_1 = require("../../posts/valodation/posts.validartion");
 const like_status_enum_1 = require("../../app/like-status.enum");
+const jwt_service_1 = require("../../app/jwt.service");
+const posts_repository_1 = require("../../posts/posts.repository");
 exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : '';
@@ -94,11 +96,29 @@ exports.blogsRouter.get('/:blogId/posts', (req, res) => __awaiter(void 0, void 0
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;
     const itemsToSkip = (pageNumber - 1) * pageSize;
-    const blogsToSend = yield db_init_1.client.db("incubator").collection("posts").find({ blogId: blogToInsert._id }, { projection: { _id: 0 } })
+    const findedPosts = yield db_init_1.client.db("incubator").collection("posts").find({ blogId: blogToInsert._id }, { projection: { _id: 0 } })
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray();
+    const postsToSend = findedPosts.map(blog => {
+        const likesCount = blog.extendedLikesInfo.usersWhoLiked.length;
+        const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length;
+        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 2);
+        let myStatus = like_status_enum_1.LikeStatus.None;
+        if (req.headers.authorization) {
+            const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
+            if (user) {
+                myStatus = posts_repository_1.postsRepository.getLikeStatus(blog, user);
+            }
+        }
+        return Object.assign(Object.assign({}, blog), { extendedLikesInfo: {
+                likesCount,
+                dislikesCount,
+                myStatus,
+                newestLikes
+            } });
+    });
     const totalCountOfItems = yield db_init_1.client.db("incubator").collection("posts")
         .find({ blogId: blogToInsert._id }).toArray();
     const mappedResponse = {
@@ -106,7 +126,7 @@ exports.blogsRouter.get('/:blogId/posts', (req, res) => __awaiter(void 0, void 0
         page: pageNumber,
         pageSize: pageSize,
         totalCount: totalCountOfItems.length,
-        items: [...blogsToSend]
+        items: [...postsToSend]
     };
     return res.status(200).send(mappedResponse);
 }));

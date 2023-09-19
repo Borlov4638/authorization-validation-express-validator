@@ -21,7 +21,7 @@ export const postsRepository ={
     },
     
     getLikeStatus(postToLike:PostType, user:jwtUser): LikeStatus{
-        if(postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.id).indexOf(user.userId)){
+        if(postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId)){
             return LikeStatus.Like
         }else if(postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId)){
             return LikeStatus.Dislike
@@ -31,7 +31,7 @@ export const postsRepository ={
     },
 
     clearLikeStatus(postToLike:PostType, user:jwtUser): void{
-        const isLikeIndex = postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.id).indexOf(user.userId)
+        const isLikeIndex = postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId)
         const isDislikeIndex = postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId)
         if(isLikeIndex > -1){
             postToLike.extendedLikesInfo.usersWhoLiked.splice(isLikeIndex, 1)
@@ -42,7 +42,7 @@ export const postsRepository ={
 
     createLikeStatus(postToLike: PostType, user: jwtUser, likeStatus: LikeStatus): PostType{
         if(likeStatus === LikeStatus.Like){
-            postToLike.extendedLikesInfo.usersWhoLiked.push({id: user.userId, login: user.login, date: (+new Date())})
+            postToLike.extendedLikesInfo.usersWhoLiked.push({userId: user.userId, login: user.login, addedAt: new Date().toISOString()})
         }else if(likeStatus === LikeStatus.Dislike){
             postToLike.extendedLikesInfo.usersWhoDisliked.push(user.userId)
         }

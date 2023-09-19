@@ -16,7 +16,7 @@ exports.postsRepository = {
         }
     },
     getLikeStatus(postToLike, user) {
-        if (postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.id).indexOf(user.userId)) {
+        if (postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId)) {
             return like_status_enum_1.LikeStatus.Like;
         }
         else if (postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId)) {
@@ -27,7 +27,7 @@ exports.postsRepository = {
         }
     },
     clearLikeStatus(postToLike, user) {
-        const isLikeIndex = postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.id).indexOf(user.userId);
+        const isLikeIndex = postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId);
         const isDislikeIndex = postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId);
         if (isLikeIndex > -1) {
             postToLike.extendedLikesInfo.usersWhoLiked.splice(isLikeIndex, 1);
@@ -38,7 +38,7 @@ exports.postsRepository = {
     },
     createLikeStatus(postToLike, user, likeStatus) {
         if (likeStatus === like_status_enum_1.LikeStatus.Like) {
-            postToLike.extendedLikesInfo.usersWhoLiked.push({ id: user.userId, login: user.login, date: (+new Date()) });
+            postToLike.extendedLikesInfo.usersWhoLiked.push({ userId: user.userId, login: user.login, addedAt: new Date().toISOString() });
         }
         else if (likeStatus === like_status_enum_1.LikeStatus.Dislike) {
             postToLike.extendedLikesInfo.usersWhoDisliked.push(user.userId);

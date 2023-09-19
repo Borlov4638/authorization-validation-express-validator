@@ -12,9 +12,9 @@ export type PostType ={
     extendedLikesInfo:{
         usersWhoLiked: [
             {
-                id:string,
+                userId:string,
                 login:string
-                date: number
+                addedAt: string
             },
         ],
         usersWhoDisliked: Array<string>

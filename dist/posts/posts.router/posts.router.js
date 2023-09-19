@@ -31,11 +31,29 @@ exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, func
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;
     const itemsToSkip = (pageNumber - 1) * pageSize;
-    const blogsToSend = yield db_init_1.client.db("incubator").collection("posts").find({}, { projection: { _id: 0 } })
+    const findedPosts = yield db_init_1.client.db("incubator").collection("posts").find({}, { projection: { _id: 0 } })
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray();
+    const postsToSend = findedPosts.map(blog => {
+        const likesCount = blog.extendedLikesInfo.usersWhoLiked.length;
+        const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length;
+        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 2);
+        let myStatus = like_status_enum_1.LikeStatus.None;
+        if (req.headers.authorization) {
+            const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
+            if (user) {
+                myStatus = posts_repository_1.postsRepository.getLikeStatus(blog, user);
+            }
+        }
+        return Object.assign(Object.assign({}, blog), { extendedLikesInfo: {
+                likesCount,
+                dislikesCount,
+                myStatus,
+                newestLikes
+            } });
+    });
     const totalCountOfItems = yield db_init_1.client.db("incubator").collection("posts")
         .find({}).toArray();
     const mappedResponse = {
@@ -43,7 +61,7 @@ exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, func
         page: pageNumber,
         pageSize: pageSize,
         totalCount: totalCountOfItems.length,
-        items: [...blogsToSend]
+        items: [...postsToSend]
     };
     res.status(200).send(mappedResponse);
 }));
@@ -52,7 +70,23 @@ exports.postRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, f
     if (!foundedPost) {
         return res.sendStatus(404);
     }
-    return res.status(200).send(foundedPost);
+    let myStatus = like_status_enum_1.LikeStatus.None;
+    if (req.headers.authorization) {
+        const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
+        if (user) {
+            myStatus = posts_repository_1.postsRepository.getLikeStatus(foundedPost, user);
+        }
+    }
+    const likesCount = foundedPost.extendedLikesInfo.usersWhoLiked.length;
+    const dislikesCount = foundedPost.extendedLikesInfo.usersWhoDisliked.length;
+    const newestLikes = foundedPost.extendedLikesInfo.usersWhoLiked.slice(0, 2);
+    const postToShow = Object.assign(Object.assign({}, foundedPost), { extendedLikesInfo: {
+            likesCount,
+            dislikesCount,
+            myStatus,
+            newestLikes
+        } });
+    return res.status(200).send(postToShow);
 }));
 exports.postRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const blogToFetch = yield db_init_1.client.db("incubator").collection("blogs").findOne({ _id: new mongodb_1.ObjectId(req.body.blogId) });

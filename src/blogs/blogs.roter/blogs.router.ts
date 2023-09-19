@@ -8,6 +8,9 @@ import { blogsRepository } from "../repository/blogs.repository";
 import { postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
 import { blogsDbRepo } from "../db/blogs.db";
 import { LikeStatus } from "../../app/like-status.enum";
+import { jwtService, jwtUser } from "../../app/jwt.service";
+import { postsRepository } from "../../posts/posts.repository";
+import { PostType } from "../../types/posts.types";
 
 export const blogsRouter : Router = Router({})
 
@@ -142,11 +145,34 @@ blogsRouter.get('/:blogId/posts', async (req:RequestWithParamAndQuery<{blogId:st
 
     const itemsToSkip = (pageNumber - 1) * pageSize
 
-    const blogsToSend = await client.db("incubator").collection("posts").find({blogId:blogToInsert._id},{projection:{_id:0}})
+    const findedPosts = await client.db("incubator").collection("posts").find({blogId:blogToInsert._id},{projection:{_id:0}})
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
-        .toArray()
+        .toArray() as PostType[]
+
+        const postsToSend = findedPosts.map(blog => {
+        const likesCount = blog.extendedLikesInfo.usersWhoLiked.length
+        const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length
+        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 2) 
+        let myStatus = LikeStatus.None
+
+        if(req.headers.authorization){
+            const user = jwtService.getAllTokenData(req.headers.authorization)
+            if(user){
+                myStatus = postsRepository.getLikeStatus(blog, user as jwtUser)
+            }
+        }
+    
+        return {...blog, extendedLikesInfo:{
+            likesCount,
+            dislikesCount,
+            myStatus,
+            newestLikes
+        }}
+    
+    })
+
 
     const totalCountOfItems = await client.db("incubator").collection("posts")
         .find({blogId:blogToInsert._id}).toArray()
@@ -156,7 +182,7 @@ blogsRouter.get('/:blogId/posts', async (req:RequestWithParamAndQuery<{blogId:st
         page: pageNumber,
         pageSize: pageSize,
         totalCount: totalCountOfItems.length,
-        items: [...blogsToSend]
+        items: [...postsToSend]
     }
     return res.status(200).send(mappedResponse)
 

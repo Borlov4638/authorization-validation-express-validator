@@ -32,11 +32,33 @@ postRouter.get('/', async (req :RequestWithQuery<{sortBy:string, sortDirection:s
 
     const itemsToSkip = (pageNumber - 1) * pageSize
 
-    const blogsToSend = await client.db("incubator").collection("posts").find({},{projection:{_id:0}})
+    const findedPosts = await client.db("incubator").collection("posts").find({},{projection:{_id:0}})
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
-        .toArray()
+        .toArray() as PostType[]
+
+    const postsToSend = findedPosts.map(blog => {
+        const likesCount = blog.extendedLikesInfo.usersWhoLiked.length
+        const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length
+        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 2) 
+        let myStatus = LikeStatus.None
+
+        if(req.headers.authorization){
+            const user = jwtService.getAllTokenData(req.headers.authorization)
+            if(user){
+                myStatus = postsRepository.getLikeStatus(blog, user as jwtUser)
+            }
+        }
+    
+        return {...blog, extendedLikesInfo:{
+            likesCount,
+            dislikesCount,
+            myStatus,
+            newestLikes
+        }}
+    
+    })
 
     const totalCountOfItems = await client.db("incubator").collection("posts")
         .find({}).toArray()
@@ -46,20 +68,36 @@ postRouter.get('/', async (req :RequestWithQuery<{sortBy:string, sortDirection:s
         page: pageNumber,
         pageSize: pageSize,
         totalCount: totalCountOfItems.length,
-        items: [...blogsToSend]
+        items: [...postsToSend]
     }
     res.status(200).send(mappedResponse)
 })
 
 postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response) =>{
 
-    const foundedPost = await client.db("incubator").collection("posts").findOne({_id: new ObjectId(`${req.params.id}`)}, {projection:{_id:0}})
+    const foundedPost = await client.db("incubator").collection("posts").findOne({_id: new ObjectId(`${req.params.id}`)}, {projection:{_id:0}}) as PostType
 
     if(!foundedPost){
         return res.sendStatus(404)
     }
+    let myStatus = LikeStatus.None
 
-    return res.status(200).send(foundedPost)
+    if(req.headers.authorization){
+        const user = jwtService.getAllTokenData(req.headers.authorization)
+        if(user){
+            myStatus = postsRepository.getLikeStatus(foundedPost, user as jwtUser)
+        }
+    }
+    const likesCount = foundedPost.extendedLikesInfo.usersWhoLiked.length
+    const dislikesCount = foundedPost.extendedLikesInfo.usersWhoDisliked.length
+    const newestLikes = foundedPost.extendedLikesInfo.usersWhoLiked.slice(0, 2) 
+    const postToShow = {...foundedPost, extendedLikesInfo:{
+        likesCount,
+        dislikesCount,
+        myStatus,
+        newestLikes
+    }}
+    return res.status(200).send(postToShow)
 })
 
 postRouter.post('/',
