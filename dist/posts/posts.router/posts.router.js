@@ -20,6 +20,8 @@ const blogs_repository_1 = require("../../blogs/repository/blogs.repository");
 const jwt_service_1 = require("../../app/jwt.service");
 const posts_repository_1 = require("../posts.repository");
 const comments_validation_1 = require("../../comments/comments.validation");
+const like_status_enum_1 = require("../../app/like-status.enum");
+const comments_repo_1 = require("../../comments/comments.repo");
 exports.postRouter = (0, express_1.Router)({});
 exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
@@ -117,6 +119,11 @@ exports.postRouter.post('/:postId/comments', auth_middleware_1.bearerAuthorizati
     const insertedComment = yield db_init_1.client.db('incubator').collection('comments').insertOne(newComment);
     yield db_init_1.client.db('incubator').collection('comments').updateOne({ _id: insertedComment.insertedId }, { $set: { id: insertedComment.insertedId } });
     const commentToShow = yield db_init_1.client.db('incubator').collection('comments').findOne({ _id: insertedComment.insertedId }, { projection: { _id: 0, postId: 0, likesInfo: 0 } });
+    commentToShow.likesInfo = {
+        dislikesCount: 0,
+        likesCount: 0,
+        myStatus: like_status_enum_1.LikeStatus.None
+    };
     return res.status(201).send(commentToShow);
 }));
 exports.postRouter.get('/:postId/comments', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -130,11 +137,24 @@ exports.postRouter.get('/:postId/comments', (req, res) => __awaiter(void 0, void
     const pageNumber = (req.query.pageNumber) ? +req.query.pageNumber : 1;
     const pageSize = (req.query.pageSize) ? +req.query.pageSize : 10;
     const itemsToSkip = (pageNumber - 1) * pageSize;
-    const commentsToSend = yield db_init_1.client.db("incubator").collection("comments").find({ postId: postToComment._id }, { projection: { _id: 0, postId: 0 } })
+    const selectedComments = yield db_init_1.client.db("incubator").collection("comments").find({ postId: postToComment._id }, { projection: { _id: 0, postId: 0 } })
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
         .toArray();
+    const token = req.headers.authorization;
+    const commentsToSend = selectedComments.map(comm => {
+        let myStatus = like_status_enum_1.LikeStatus.None;
+        if (token) {
+            const user = jwt_service_1.jwtService.getAllTokenData(token);
+            if (user) {
+                myStatus = comments_repo_1.commentsRepository.getLikeStatus(comm, user);
+            }
+        }
+        const likesCount = comm.likesInfo.usersWhoLiked.length;
+        const dislikesCount = comm.likesInfo.usersWhoDisliked.length;
+        return Object.assign(Object.assign({}, comm), { likesInfo: { likesCount, dislikesCount, myStatus } });
+    });
     const totalCountOfItems = yield db_init_1.client.db("incubator").collection("comments")
         .find({ postId: postToComment._id }).toArray();
     const mappedResponse = {

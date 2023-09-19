@@ -9,6 +9,9 @@ import { blogsRepository } from "../../blogs/repository/blogs.repository";
 import { jwtService, jwtUser } from "../../app/jwt.service";
 import { postsRepository } from "../posts.repository";
 import { commentsContentValidation } from "../../comments/comments.validation";
+import { LikeStatus } from "../../app/like-status.enum";
+import { commentsRepository } from "../../comments/comments.repo";
+import { CommentType } from "../../types/comments.type";
 
 
 export const postRouter = Router({})
@@ -171,6 +174,11 @@ postRouter.post('/:postId/comments',
         const insertedComment = await client.db('incubator').collection('comments').insertOne(newComment)
         await client.db('incubator').collection('comments').updateOne({_id: insertedComment.insertedId}, {$set:{id: insertedComment.insertedId}})
         const commentToShow = await client.db('incubator').collection('comments').findOne({_id:insertedComment.insertedId}, {projection:{_id:0, postId:0, likesInfo:0}})
+        commentToShow!.likesInfo = {
+            dislikesCount: 0,
+            likesCount:0,
+            myStatus: LikeStatus.None
+        }
         return res.status(201).send(commentToShow)
 
 })
@@ -197,11 +205,26 @@ postRouter.get('/:postId/comments',
 
     const itemsToSkip = (pageNumber - 1) * pageSize
 
-    const commentsToSend = await client.db("incubator").collection("comments").find({postId:postToComment._id},{projection:{_id:0, postId:0}})
+    const selectedComments = await client.db("incubator").collection("comments").find({postId:postToComment._id},{projection:{_id:0, postId:0}})
         .sort(sotringQuery)
         .skip(itemsToSkip)
         .limit(pageSize)
-        .toArray()
+        .toArray() as CommentType[]
+        
+    const token = req.headers.authorization
+    const commentsToSend = selectedComments.map(comm => {
+        let myStatus = LikeStatus.None
+        if(token){
+            const user = jwtService.getAllTokenData(token) as jwtUser
+            if(user){
+                myStatus = commentsRepository.getLikeStatus(comm, user)
+            }
+        }
+        const likesCount = comm.likesInfo.usersWhoLiked.length
+        const dislikesCount = comm.likesInfo.usersWhoDisliked.length
+        return {...comm, likesInfo:{likesCount, dislikesCount, myStatus}}
+
+    })
 
     const totalCountOfItems = await client.db("incubator").collection("comments")
         .find({postId:postToComment._id}).toArray()

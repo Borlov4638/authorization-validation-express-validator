@@ -69,12 +69,14 @@ exports.commentsRouter.put('/:commentId/like-status', (req, res) => __awaiter(vo
     if (!commentToLike) {
         return res.sendStatus(404);
     }
-    //
-    //TODO проверить по документации, что должно возврашаться в этом случае
-    //
     const likeStatuses = Object.values(like_status_enum_1.LikeStatus);
     if (!likeStatuses.includes(req.body.likeStatus)) {
-        return res.sendStatus(400);
+        return res.status(400).send({ errorsMessages: [
+                {
+                    message: "invalid like status",
+                    field: "likeStatus"
+                }
+            ] });
     }
     console.log(comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus));
     const updatedLikeCount = comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus);

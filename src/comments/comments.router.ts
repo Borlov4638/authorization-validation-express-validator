@@ -94,13 +94,16 @@ commentsRouter.put('/:commentId/like-status', async (req:RequestWithParamAndBody
     if(!commentToLike){
         return res.sendStatus(404)
     }
-    //
-    //TODO проверить по документации, что должно возврашаться в этом случае
-    //
+    
     const likeStatuses = Object.values(LikeStatus)
 
     if(!likeStatuses.includes(req.body.likeStatus)){
-        return res.sendStatus(400)
+        return res.status(400).send({errorsMessages:[
+            {
+                message:"invalid like status",
+                field:"likeStatus"
+            }
+        ]})
     }
 
     console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
