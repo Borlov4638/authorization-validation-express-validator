@@ -41,7 +41,7 @@ postRouter.get('/', async (req :RequestWithQuery<{sortBy:string, sortDirection:s
     const postsToSend = findedPosts.map(blog => {
         const likesCount = blog.extendedLikesInfo.usersWhoLiked.length
         const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length
-        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 2) 
+        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 3) 
         let myStatus = LikeStatus.None
 
         if(req.headers.authorization){
@@ -90,7 +90,7 @@ postRouter.get('/:id', async (req : RequestWithParam<{id:string}>, res: Response
     }
     const likesCount = foundedPost.extendedLikesInfo.usersWhoLiked.length
     const dislikesCount = foundedPost.extendedLikesInfo.usersWhoDisliked.length
-    const newestLikes = foundedPost.extendedLikesInfo.usersWhoLiked.slice(0, 2) 
+    const newestLikes = foundedPost.extendedLikesInfo.usersWhoLiked.slice(0, 3) 
     const postToShow = {...foundedPost, extendedLikesInfo:{
         likesCount,
         dislikesCount,
@@ -288,14 +288,14 @@ postRouter.get('/:postId/comments',
     return res.status(200).send(mappedResponse)
 })
 
-postRouter.post('/:postId/like-status', async (req:RequestWithParamAndBody<{postId:string}, {likeStatus:LikeStatus}>, res:Response) =>{
+postRouter.put('/:postId/like-status', async (req:RequestWithParamAndBody<{postId:string}, {likeStatus:LikeStatus}>, res:Response) =>{
     
     if(!req.headers.authorization){
         return res.sendStatus(401)
     }
 
     const user = jwtService.getAllTokenData(req.headers.authorization) as jwtUser
-
+    console.log(user)
     if(!user){
         return res.sendStatus(401)
     }

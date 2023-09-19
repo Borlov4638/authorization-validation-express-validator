@@ -16,10 +16,10 @@ exports.postsRepository = {
         }
     },
     getLikeStatus(postToLike, user) {
-        if (postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId)) {
+        if (postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId) > -1) {
             return like_status_enum_1.LikeStatus.Like;
         }
-        else if (postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId)) {
+        else if (postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId) > -1) {
             return like_status_enum_1.LikeStatus.Dislike;
         }
         else {

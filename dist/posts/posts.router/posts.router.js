@@ -39,7 +39,7 @@ exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, func
     const postsToSend = findedPosts.map(blog => {
         const likesCount = blog.extendedLikesInfo.usersWhoLiked.length;
         const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length;
-        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 2);
+        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 3);
         let myStatus = like_status_enum_1.LikeStatus.None;
         if (req.headers.authorization) {
             const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
@@ -79,7 +79,7 @@ exports.postRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     const likesCount = foundedPost.extendedLikesInfo.usersWhoLiked.length;
     const dislikesCount = foundedPost.extendedLikesInfo.usersWhoDisliked.length;
-    const newestLikes = foundedPost.extendedLikesInfo.usersWhoLiked.slice(0, 2);
+    const newestLikes = foundedPost.extendedLikesInfo.usersWhoLiked.slice(0, 3);
     const postToShow = Object.assign(Object.assign({}, foundedPost), { extendedLikesInfo: {
             likesCount,
             dislikesCount,
@@ -210,11 +210,12 @@ exports.postRouter.get('/:postId/comments', (req, res) => __awaiter(void 0, void
     };
     return res.status(200).send(mappedResponse);
 }));
-exports.postRouter.post('/:postId/like-status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.postRouter.put('/:postId/like-status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     if (!req.headers.authorization) {
         return res.sendStatus(401);
     }
     const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
+    console.log(user);
     if (!user) {
         return res.sendStatus(401);
     }

@@ -21,9 +21,9 @@ export const postsRepository ={
     },
     
     getLikeStatus(postToLike:PostType, user:jwtUser): LikeStatus{
-        if(postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId)){
+        if(postToLike.extendedLikesInfo.usersWhoLiked.map(obj => obj.userId).indexOf(user.userId) > -1){
             return LikeStatus.Like
-        }else if(postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId)){
+        }else if(postToLike.extendedLikesInfo.usersWhoDisliked.indexOf(user.userId) > -1){
             return LikeStatus.Dislike
         }else{
             return LikeStatus.None
