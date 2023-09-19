@@ -17,6 +17,7 @@ const db_init_1 = require("../db/db.init");
 const mongodb_1 = require("mongodb");
 const blogs_repository_1 = require("../repository/blogs.repository");
 const posts_validartion_1 = require("../../posts/valodation/posts.validartion");
+const like_status_enum_1 = require("../../app/like-status.enum");
 exports.blogsRouter = (0, express_1.Router)({});
 exports.blogsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const searchNameTerm = (req.query.searchNameTerm) ? req.query.searchNameTerm : '';
@@ -120,10 +121,19 @@ exports.blogsRouter.post('/:blogId/posts', auth_middleware_1.authValidationMiddl
         content: req.body.content,
         blogId: blogToInsert.id,
         blogName: blogToInsert.name,
-        createdAt: (new Date()).toISOString()
+        createdAt: (new Date()).toISOString(),
+        extendedLikesInfo: {
+            usersWhoLiked: [],
+            usersWhoDisliked: []
+        }
     };
     const insertedPost = yield db_init_1.client.db("incubator").collection("posts").insertOne(newPost);
     yield db_init_1.client.db("incubator").collection("posts").updateOne({ _id: insertedPost.insertedId }, { $set: { id: insertedPost.insertedId } });
-    const postToShow = yield db_init_1.client.db("incubator").collection("posts").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0 } });
-    return res.status(201).send(postToShow);
+    const postToShow = yield db_init_1.client.db("incubator").collection("posts").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0, extendedLikesInfo: 0 } });
+    return res.status(201).send(Object.assign(Object.assign({}, postToShow), { extendedLikesInfo: {
+            likesCount: 0,
+            dislikesCount: 0,
+            myStatus: like_status_enum_1.LikeStatus.None,
+            newestLikes: []
+        } }));
 }));

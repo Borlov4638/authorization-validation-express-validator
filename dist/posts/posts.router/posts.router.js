@@ -22,6 +22,7 @@ const posts_repository_1 = require("../posts.repository");
 const comments_validation_1 = require("../../comments/comments.validation");
 const like_status_enum_1 = require("../../app/like-status.enum");
 const comments_repo_1 = require("../../comments/comments.repo");
+const posts_service_1 = require("../posts.service");
 exports.postRouter = (0, express_1.Router)({});
 exports.postRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sortBy = (req.query.sortBy) ? req.query.sortBy : "createdAt";
@@ -64,12 +65,21 @@ exports.postRouter.post('/', auth_middleware_1.authValidationMiddleware, (0, pos
         content: req.body.content,
         blogId: blogToFetch.id,
         blogName: blogToFetch.name,
-        createdAt: (new Date()).toISOString()
+        createdAt: (new Date()).toISOString(),
+        extendedLikesInfo: {
+            usersWhoLiked: [],
+            usersWhoDisliked: []
+        }
     };
     const insertedPost = yield db_init_1.client.db("incubator").collection("posts").insertOne(newPost);
     yield db_init_1.client.db("incubator").collection("posts").updateOne({ _id: insertedPost.insertedId }, { $set: { id: insertedPost.insertedId } });
-    const postToShow = yield db_init_1.client.db("incubator").collection("posts").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0 } });
-    return res.status(201).send(postToShow);
+    const postToShow = yield db_init_1.client.db("incubator").collection("posts").findOne({ _id: insertedPost.insertedId }, { projection: { _id: 0, extendedLikesInfo: 0 } });
+    return res.status(201).send(Object.assign(Object.assign({}, postToShow), { extendedLikesInfo: {
+            likesCount: 0,
+            dislikesCount: 0,
+            myStatus: like_status_enum_1.LikeStatus.None,
+            newestLikes: []
+        } }));
 }));
 exports.postRouter.put('/:id', auth_middleware_1.authValidationMiddleware, posts_validartion_1.postIsExistsById, (0, posts_validartion_1.postTitleValidation)(), (0, posts_validartion_1.postShortDescriptionValidation)(), (0, posts_validartion_1.postContenteValidation)(), (0, posts_validartion_1.postBlogIdValidation)(), blog_validatiom_1.validationResultMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const blogToFetch = yield db_init_1.client.db("incubator").collection("blogs").findOne({ _id: new mongodb_1.ObjectId(req.body.blogId) });
@@ -165,4 +175,33 @@ exports.postRouter.get('/:postId/comments', (req, res) => __awaiter(void 0, void
         items: [...commentsToSend]
     };
     return res.status(200).send(mappedResponse);
+}));
+exports.postRouter.post('/:postId/like-status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.headers.authorization) {
+        return res.sendStatus(401);
+    }
+    const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);
+    if (!user) {
+        return res.sendStatus(401);
+    }
+    const postToLike = yield posts_service_1.postsService.getPostById(req.params.postId);
+    if (!postToLike) {
+        return res.sendStatus(404);
+    }
+    const likeStatuses = Object.values(like_status_enum_1.LikeStatus);
+    if (!likeStatuses.includes(req.body.likeStatus)) {
+        return res.status(400).send({ errorsMessages: [
+                {
+                    message: "invalid like status",
+                    field: "likeStatus"
+                }
+            ] });
+    }
+    const isLikeSet = yield posts_service_1.postsService.changeLikeStatus(postToLike, user, req.body.likeStatus);
+    if (isLikeSet) {
+        return res.sendStatus(204);
+    }
+    else {
+        return res.sendStatus(500);
+    }
 }));

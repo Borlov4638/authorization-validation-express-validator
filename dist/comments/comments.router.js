@@ -78,7 +78,7 @@ exports.commentsRouter.put('/:commentId/like-status', (req, res) => __awaiter(vo
                 }
             ] });
     }
-    console.log(comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus));
+    // console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
     const updatedLikeCount = comments_service_1.commentService.changeLikeStatus(user, commentToLike, req.body.likeStatus);
     yield db_init_1.client.db("incubator").collection("comments").updateOne({ _id: commentToLike._id }, { $set: { likesInfo: updatedLikeCount.likesInfo } });
     return res.sendStatus(204);

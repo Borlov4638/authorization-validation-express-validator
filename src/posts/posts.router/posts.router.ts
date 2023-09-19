@@ -12,6 +12,8 @@ import { commentsContentValidation } from "../../comments/comments.validation";
 import { LikeStatus } from "../../app/like-status.enum";
 import { commentsRepository } from "../../comments/comments.repo";
 import { CommentType } from "../../types/comments.type";
+import { postsService } from "../posts.service";
+import { PostType } from "../../types/posts.types";
 
 
 export const postRouter = Router({})
@@ -82,14 +84,23 @@ postRouter.post('/',
         content: req.body.content,
         blogId: blogToFetch.id,
         blogName: blogToFetch.name,
-        createdAt: (new Date()).toISOString()
+        createdAt: (new Date()).toISOString(),
+        extendedLikesInfo:{
+            usersWhoLiked:[],
+            usersWhoDisliked:[]
+        }
     }
     
 
     const insertedPost = await client.db("incubator").collection("posts").insertOne(newPost)
     await client.db("incubator").collection("posts").updateOne({_id:insertedPost.insertedId}, {$set:{id:insertedPost.insertedId}})
-    const postToShow = await client.db("incubator").collection("posts").findOne({_id: insertedPost.insertedId}, {projection:{_id:0}})
-    return res.status(201).send(postToShow)
+    const postToShow = await client.db("incubator").collection("posts").findOne({_id: insertedPost.insertedId}, {projection:{_id:0, extendedLikesInfo:0}})
+    return res.status(201).send({...postToShow, extendedLikesInfo:{
+        likesCount:0,
+        dislikesCount:0,
+        myStatus:LikeStatus.None,
+        newestLikes:[]
+    }})
 })
 
 postRouter.put('/:id',
@@ -237,4 +248,42 @@ postRouter.get('/:postId/comments',
         items: [...commentsToSend]
     }
     return res.status(200).send(mappedResponse)
+})
+
+postRouter.post('/:postId/like-status', async (req:RequestWithParamAndBody<{postId:string}, {likeStatus:LikeStatus}>, res:Response) =>{
+    
+    if(!req.headers.authorization){
+        return res.sendStatus(401)
+    }
+
+    const user = jwtService.getAllTokenData(req.headers.authorization) as jwtUser
+
+    if(!user){
+        return res.sendStatus(401)
+    }
+
+    const postToLike = await postsService.getPostById(req.params.postId)
+
+    if(!postToLike){
+        return res.sendStatus(404)
+    }
+
+    const likeStatuses = Object.values(LikeStatus)
+
+    if(!likeStatuses.includes(req.body.likeStatus)){
+        return res.status(400).send({errorsMessages:[
+            {
+                message:"invalid like status",
+                field:"likeStatus"
+            }
+        ]})
+    }
+
+    const isLikeSet = await postsService.changeLikeStatus(postToLike as PostType, user, req.body.likeStatus)
+
+    if(isLikeSet){
+        return res.sendStatus(204)
+    }else{
+        return res.sendStatus(500)
+    }
 })

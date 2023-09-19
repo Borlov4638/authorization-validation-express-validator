@@ -106,7 +106,7 @@ commentsRouter.put('/:commentId/like-status', async (req:RequestWithParamAndBody
         ]})
     }
 
-    console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
+    // console.log(commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus))
 
     const updatedLikeCount = commentService.changeLikeStatus(user as jwtUser, commentToLike as CommentType, req.body.likeStatus)
 

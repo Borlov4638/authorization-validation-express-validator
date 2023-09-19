@@ -7,6 +7,7 @@ import { ObjectId } from "mongodb";
 import { blogsRepository } from "../repository/blogs.repository";
 import { postContenteValidation, postShortDescriptionValidation, postTitleValidation } from "../../posts/valodation/posts.validartion";
 import { blogsDbRepo } from "../db/blogs.db";
+import { LikeStatus } from "../../app/like-status.enum";
 
 export const blogsRouter : Router = Router({})
 
@@ -181,13 +182,22 @@ blogsRouter.post('/:blogId/posts',
         content: req.body.content,
         blogId: blogToInsert.id,
         blogName: blogToInsert.name,
-        createdAt: (new Date()).toISOString()
+        createdAt: (new Date()).toISOString(),
+        extendedLikesInfo:{
+            usersWhoLiked:[],
+            usersWhoDisliked:[]
+        }
     }
     
 
     const insertedPost = await client.db("incubator").collection("posts").insertOne(newPost)
     await client.db("incubator").collection("posts").updateOne({_id:insertedPost.insertedId}, {$set:{id:insertedPost.insertedId}})
-    const postToShow = await client.db("incubator").collection("posts").findOne({_id: insertedPost.insertedId}, {projection:{_id:0}})
-    return res.status(201).send(postToShow)
+    const postToShow = await client.db("incubator").collection("posts").findOne({_id: insertedPost.insertedId}, {projection:{_id:0, extendedLikesInfo:0}})
+    return res.status(201).send({...postToShow, extendedLikesInfo:{
+        likesCount:0,
+        dislikesCount:0,
+        myStatus:LikeStatus.None,
+        newestLikes:[]
+    }})
 
 })
