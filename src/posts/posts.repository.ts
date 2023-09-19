@@ -42,7 +42,7 @@ export const postsRepository ={
 
     createLikeStatus(postToLike: PostType, user: jwtUser, likeStatus: LikeStatus): PostType{
         if(likeStatus === LikeStatus.Like){
-            postToLike.extendedLikesInfo.usersWhoLiked.push({userId: user.userId, login: user.login, addedAt: new Date().toISOString()})
+            postToLike.extendedLikesInfo.usersWhoLiked.push({userId: user.userId, login: user.login, addedAt: (+new Date())})
         }else if(likeStatus === LikeStatus.Dislike){
             postToLike.extendedLikesInfo.usersWhoDisliked.push(user.userId)
         }

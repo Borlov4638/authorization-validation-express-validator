@@ -104,7 +104,8 @@ exports.blogsRouter.get('/:blogId/posts', (req, res) => __awaiter(void 0, void 0
     const postsToSend = findedPosts.map(blog => {
         const likesCount = blog.extendedLikesInfo.usersWhoLiked.length;
         const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length;
-        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 3);
+        let likes = blog.extendedLikesInfo.usersWhoLiked.sort((a, b) => b.addedAt - a.addedAt).slice(0, 3);
+        const newestLikes = likes.map(user => { return { userId: user.userId, login: user.login, addedAt: new Date(user.addedAt).toISOString() }; });
         let myStatus = like_status_enum_1.LikeStatus.None;
         if (req.headers.authorization) {
             const user = jwt_service_1.jwtService.getAllTokenData(req.headers.authorization);

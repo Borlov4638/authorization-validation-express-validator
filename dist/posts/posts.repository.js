@@ -38,7 +38,7 @@ exports.postsRepository = {
     },
     createLikeStatus(postToLike, user, likeStatus) {
         if (likeStatus === like_status_enum_1.LikeStatus.Like) {
-            postToLike.extendedLikesInfo.usersWhoLiked.push({ userId: user.userId, login: user.login, addedAt: new Date().toISOString() });
+            postToLike.extendedLikesInfo.usersWhoLiked.push({ userId: user.userId, login: user.login, addedAt: (+new Date()) });
         }
         else if (likeStatus === like_status_enum_1.LikeStatus.Dislike) {
             postToLike.extendedLikesInfo.usersWhoDisliked.push(user.userId);

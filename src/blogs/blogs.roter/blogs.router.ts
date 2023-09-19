@@ -154,7 +154,8 @@ blogsRouter.get('/:blogId/posts', async (req:RequestWithParamAndQuery<{blogId:st
         const postsToSend = findedPosts.map(blog => {
         const likesCount = blog.extendedLikesInfo.usersWhoLiked.length
         const dislikesCount = blog.extendedLikesInfo.usersWhoDisliked.length
-        const newestLikes = blog.extendedLikesInfo.usersWhoLiked.slice(0, 3) 
+        let likes = blog.extendedLikesInfo.usersWhoLiked.sort((a,b) => b.addedAt - a.addedAt).slice(0,3)
+        const  newestLikes = likes.map(user => {return {userId:user.userId, login:user.login, addedAt:new Date(user.addedAt).toISOString()}})
         let myStatus = LikeStatus.None
 
         if(req.headers.authorization){

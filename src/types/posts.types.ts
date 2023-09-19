@@ -14,7 +14,7 @@ export type PostType ={
             {
                 userId:string,
                 login:string
-                addedAt: string
+                addedAt: number
             },
         ],
         usersWhoDisliked: Array<string>
